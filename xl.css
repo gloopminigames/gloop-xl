@@ -22,7 +22,12 @@ a{color:var(--slime)}
 .top{background:var(--bg)}
 .top .wrap{display:flex;align-items:center;gap:14px;min-height:80px;flex-wrap:wrap;padding-top:6px;padding-bottom:6px}
 .brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font:700 22px/1 "Fredoka",sans-serif;margin-right:auto}
-.brand img{width:40px;height:40px;border-radius:12px;border:3px solid var(--line)}
+/* Logo: hetzelfde als Gloop (ogen volgen je muis), met XL erachter in slijmgroen */
+.logo-word{font-family:"Fredoka",system-ui,sans-serif;font-weight:700;font-size:42px;line-height:1;letter-spacing:-.02em;display:inline-flex;align-items:baseline;color:var(--text)}
+.eyes{display:inline-flex;gap:.03em;margin:0 .03em -.01em .04em}
+.eye{width:.5em;height:.5em;border:.1em solid var(--text);border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
+.pupil{width:.18em;height:.18em;border-radius:50%;background:#221A48;transform:translate(var(--px,.06em),var(--py,.03em));transition:transform .12s ease-out}
+.logo-xl{margin-left:.14em;font-size:.82em;color:var(--slime);text-shadow:0 .07em 0 #0A0720;transform:rotate(-6deg) translateY(-.04em);display:inline-block;letter-spacing:0}
 .top nav{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .top nav>a.navlink{color:var(--text);text-decoration:none;font-weight:800;font-size:17px;padding:8px 2px;border-bottom:3px solid transparent;margin-right:12px}
 .top nav>a.navlink:hover{border-color:var(--muted)}
@@ -101,7 +106,7 @@ footer{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 @media (max-width:600px){
   .top .wrap{flex-wrap:nowrap;gap:10px;min-height:72px}
   .brand{font-size:19px;gap:8px;flex-shrink:0}
-  .brand img{width:34px;height:34px;border-radius:10px}
+  .logo-word{font-size:34px}
   .top nav{gap:8px;flex-wrap:nowrap;min-width:0}
   .top nav>a.navlink{display:none}
   .acc{max-width:9.5em}

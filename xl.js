@@ -66,5 +66,10 @@ function header(){
 document.querySelectorAll('[data-gloop]').forEach(a=>a.href=GLOOP+(a.getAttribute('data-gloop')||'/'));
 document.querySelectorAll('[data-login]').forEach(a=>a.href=XL.loginUrl(a.getAttribute('data-login')));
 header();
+// Logo: de ogen kijken naar je muis (net als bij Gloop).
+(()=>{const logo=document.getElementById('logoWord');if(!logo)return;let raf=0;
+  addEventListener('pointermove',e=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;const r=logo.getBoundingClientRect();
+    const dx=Math.max(-1,Math.min(1,(e.clientX-(r.left+r.width/2))/400)),dy=Math.max(-1,Math.min(1,(e.clientY-(r.top+r.height/2))/300));
+    logo.style.setProperty('--px',(dx*.08).toFixed(3)+'em');logo.style.setProperty('--py',(dy*.08).toFixed(3)+'em');});},{passive:true});})();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register(BASE+'sw.js',{scope:BASE}).catch(()=>{}));
 })();
