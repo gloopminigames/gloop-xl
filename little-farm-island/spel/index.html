@@ -141,6 +141,9 @@ body.placing #seedbar{opacity:.45;pointer-events:none}
 .links a{color:var(--ink);font-weight:700;background:var(--chip);border-radius:14px;padding:7px 12px;text-decoration:none}
 #optBtn{pointer-events:auto;flex:none;align-self:center;width:48px;height:48px;border-radius:50%;background:var(--cream);box-shadow:var(--shadow);font-size:22px;display:grid;place-items:center}
 #optBtn:active{transform:scale(.92)}
+#exitBtn{pointer-events:auto;flex:none;align-self:center;width:48px;height:48px;border-radius:50%;background:var(--cream);box-shadow:var(--shadow);font-size:22px;font-weight:700;color:#5a3b1e;display:grid;place-items:center}
+#exitBtn[hidden]{display:none}
+#exitBtn:active{transform:scale(.92)}
 .sh-head{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 10px}
 .sh-head h2{margin:0;font-size:28px;font-weight:700}
 .x{width:44px;height:44px;border-radius:50%;background:var(--chip);font-size:20px;font-weight:700}
@@ -185,6 +188,7 @@ body.placing #seedbar{opacity:.45;pointer-events:none}
     <div class="bar"><i id="lvlBar"></i></div>
   </div>
   <button id="optBtn" aria-label="Instellingen">⚙️</button>
+  <button id="exitBtn" aria-label="Volledig scherm sluiten" hidden>✕</button>
 </div>
 <div class="pill clock" id="clock">☀️ 08:00</div>
 <div id="tonic" class="pill" hidden>🐟 <span>Groei 2×</span> <b id="tonicT">0:00</b></div>
@@ -1063,6 +1067,18 @@ XL.me().then(u=>{
 }).finally(()=>{boot();render();});
 setTimeout(boot,4000);   // traag of offline: gewoon starten met dit apparaat
 })();
+
+/* ---------------- VOLLEDIG SCHERM VERLATEN ----------------
+   Op een tablet of telefoon is er geen Esc-toets. Deze knop verschijnt:
+   - in het kader op de spelpagina: alleen als het kader volledig scherm is (sluit volledig scherm);
+   - als het spel op een eigen pagina staat (bijv. iPhone): terug naar de spelpagina. */
+(()=>{const b=document.getElementById('exitBtn');if(!b)return;
+  const inFrame=window.top!==window;let pd=null;try{pd=inFrame?parent.document:null;}catch(e){}
+  const fsEl=()=>pd&&(pd.fullscreenElement||pd.webkitFullscreenElement);
+  const upd=()=>{b.hidden=inFrame?!fsEl():false;b.setAttribute('aria-label',inFrame?'Volledig scherm sluiten':'Spel sluiten, terug naar de spelpagina');};
+  b.onclick=()=>{if(inFrame){const f=pd.exitFullscreen||pd.webkitExitFullscreen;if(f)f.call(pd);}else location.href='../little-farm-island';};
+  if(pd){pd.addEventListener('fullscreenchange',upd);pd.addEventListener('webkitfullscreenchange',upd);}
+  upd();})();
 </script>
 </body>
 </html>
