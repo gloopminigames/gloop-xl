@@ -13,13 +13,13 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Nunito",system
 h1,h2,h3{font-family:"Fredoka","Nunito",system-ui,sans-serif;line-height:1.1;margin:0}
 a{color:var(--slime)}
 :focus-visible{outline:3px solid var(--sun);outline-offset:3px;border-radius:8px}
-.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
-@media (min-width:700px){.wrap{padding:0 32px}}
+/* Zelfde breedte en marges als Gloop, zodat overstappen naar XL en terug rustig voelt */
+.wrap{max-width:1280px;margin:0 auto;padding:0 clamp(16px,4vw,48px)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* kop */
 .top{border-bottom:3px solid var(--line);background:#0E0B22}
-.top .wrap{display:flex;align-items:center;gap:16px;min-height:68px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.top .wrap{display:flex;align-items:center;gap:16px;min-height:77px;flex-wrap:wrap;padding-top:6px;padding-bottom:6px}
 .brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font:700 22px/1 "Fredoka",sans-serif}
 .brand img{width:40px;height:40px;border-radius:12px;border:3px solid var(--line)}
 .top nav{display:flex;gap:18px;margin-left:auto;align-items:center;flex-wrap:wrap}
@@ -91,7 +91,7 @@ footer{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 
 /* Telefoon: kop op één regel, compacter */
 @media (max-width:600px){
-  .top .wrap{flex-wrap:nowrap;gap:10px;min-height:62px}
+  .top .wrap{flex-wrap:nowrap;gap:10px;min-height:69px}
   .brand{font-size:19px;gap:8px;flex-shrink:0}
   .brand img{width:34px;height:34px;border-radius:10px}
   .top nav{gap:12px;flex-wrap:nowrap;min-width:0}
