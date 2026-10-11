@@ -43,10 +43,21 @@ function header(){
   const el=document.getElementById('acc');if(!el)return;
   XL.me().then(u=>{
     el.textContent='';
-    if(u){const l=document.createElement('span');l.className='acc-l';l.textContent='Ingelogd als ';el.append(l);const b=document.createElement('b');b.textContent=u.name;el.append(b);
-      if(u.via!=='gloop'){el.append(' · ');const out=document.createElement('button');out.type='button';out.textContent='Uitloggen';
-        out.onclick=async()=>{out.disabled=true;await XL.logout();location.reload();};el.append(out);}}
-    else{const a=document.createElement('a');a.href=XL.loginUrl(XL.here());a.textContent='Inloggen';el.append(a);}
+    if(u){
+      // Naam als knop (zoals bij Gloop), met een klein menu: profiel op Gloop en (los op XL) uitloggen.
+      const btn=document.createElement('button');btn.type='button';btn.className='hpill';btn.setAttribute('aria-haspopup','menu');btn.setAttribute('aria-expanded','false');
+      const ini=document.createElement('span');ini.className='ini';ini.setAttribute('aria-hidden','true');ini.textContent=(u.name||'?').charAt(0).toUpperCase();
+      const b=document.createElement('b');b.textContent=u.name;btn.append(ini,b);
+      const menu=document.createElement('div');menu.className='acc-menu';menu.setAttribute('role','menu');menu.hidden=true;
+      const prof=document.createElement('a');prof.href=GLOOP+'/profiel';prof.textContent='Mijn profiel op Gloop';prof.setAttribute('role','menuitem');menu.append(prof);
+      if(u.via!=='gloop'){const out=document.createElement('button');out.type='button';out.textContent='Uitloggen';out.setAttribute('role','menuitem');
+        out.onclick=async()=>{out.disabled=true;await XL.logout();location.reload();};menu.append(out);}
+      const close=()=>{menu.hidden=true;btn.setAttribute('aria-expanded','false');};
+      btn.onclick=e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;btn.setAttribute('aria-expanded',String(open));if(open)menu.querySelector('a,button').focus();};
+      document.addEventListener('click',e=>{if(!el.contains(e.target))close();});
+      document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!menu.hidden){close();btn.focus();}});
+      el.append(btn,menu);
+    }else{const a=document.createElement('a');a.className='hpill';a.href=XL.loginUrl(XL.here());a.textContent='Inloggen';el.append(a);}
     document.querySelectorAll('[data-if-user]').forEach(n=>n.hidden=!u);
     document.querySelectorAll('[data-if-guest]').forEach(n=>n.hidden=!!u);
     document.querySelectorAll('[data-user-name]').forEach(n=>n.textContent=u?u.name:'');
