@@ -34,3 +34,8 @@ Op localhost praat `xl.js` vanzelf met `http://localhost:3100`.
 ## Online zetten (Vercel)
 Nieuw project → deze repo importeren → Framework "Other", geen build command.
 Bij een wijziging in `vendor/`, `fonts/` of `icons/`: verhoog `VERSIE` in `sw.js`.
+
+## Let op: repo openbaar houden
+Op het gratis Vercel-abonnement (Hobby) zet Vercel commits uit een **privé** repo alleen live als
+de eigenaar ze zelf heeft gemaakt. Commits van anderen worden dan geblokkeerd. Houd deze repo daarom
+openbaar; er staan geen geheime gegevens in (sleutels staan alleen in de instellingen van Vercel).
