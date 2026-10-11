@@ -2,7 +2,7 @@
 // Pagina's: eerst internet (dan zie je updates), anders de cache. Vaste bestanden (Three.js, lettertypen, iconen): eerst de cache.
 // Iets veranderd in vendor/, fonts/ of icons/? Verhoog dan VERSIE.
 const VERSIE = 'gloopxl-v5';
-const SCOPE = self.registration.scope;                 // bijv. https://gloop-xl.vercel.app/ of https://gloopie.nl/xl/
+const SCOPE = self.registration.scope;                 // bijv. https://gloop-xl.vercel.app/ of https://www.gloopie.nl/xl/
 const BASE = new URL(SCOPE).pathname;
 const START = ['', 'little-farm-island', 'little-farm-island/spel', 'privacy', 'cookies', 'xl.css', 'xl.js', 'manifest.webmanifest',
   'vendor/three.r128.min.js', 'icons/icon-192.png', 'little-farm-island/icon-192.png', 'little-farm-island/icon-512.png',
