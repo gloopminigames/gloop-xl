@@ -1,7 +1,7 @@
 // Gloop XL – offline spelen. Pagina's: eerst internet (dan zie je updates), anders de cache.
 // Vaste bestanden (Three.js, lettertypen, iconen): eerst de cache.
 // Iets veranderd in vendor/, fonts/ of icons/? Verhoog dan VERSIE.
-const VERSIE = 'gloopxl-v1';
+const VERSIE = 'gloopxl-v2';
 const START = ['/', '/little-farm-island', '/inloggen', '/privacy', '/cookies', '/xl.css', '/xl.js', '/manifest.webmanifest',
   '/vendor/three.r128.min.js', '/icons/icon-192.png', '/little-farm-island/icon-192.png', '/little-farm-island/icon-512.png',
   '/fonts/fredoka-latin-500-normal.woff2', '/fonts/fredoka-latin-600-normal.woff2', '/fonts/fredoka-latin-700-normal.woff2',

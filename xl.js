@@ -2,7 +2,7 @@
 // De sessiecode staat alleen op dit apparaat (localStorage 'gloopxl.token').
 (()=>{
 const LOCAL=/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-const GLOOP=LOCAL?'http://localhost:3100':'https://gloop-ten.vercel.app';   // het adres van Gloop
+const GLOOP=LOCAL?'http://localhost:3100':'https://gloopie.vercel.app';   // het adres van Gloop
 const TOKEN='gloopxl.token';
 const SAVES=['littlefarmisland.save.v1','sproutisle.save.v1'];               // eilanden op dit apparaat
 const get=()=>{try{return localStorage.getItem(TOKEN)||'';}catch(e){return '';}};
