@@ -1,6 +1,6 @@
 # Gloop XL
 
-Grotere, rustigere games voor tieners en volwassenen, van de makers van [Gloop](https://gloopie.vercel.app).
+Grotere, rustigere games voor tieners en volwassenen, van de makers van [Gloop](https://gloopie.nl).
 Statische site: geen build-stap, alles zelf gehost (geen CDN's, geen Google Fonts).
 
 ## Mappen

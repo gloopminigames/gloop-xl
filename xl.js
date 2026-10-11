@@ -7,7 +7,7 @@
 const ON_GLOOP=/^\/xl(\/|$)/.test(location.pathname);
 const BASE=ON_GLOOP?'/xl/':'/';
 const LOCAL=/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-const GLOOP=ON_GLOOP?location.origin:LOCAL?'http://localhost:3100':'https://gloopie.vercel.app';   // het adres van Gloop
+const GLOOP=ON_GLOOP?location.origin:LOCAL?'http://localhost:3100':'https://gloopie.nl';   // het adres van Gloop
 const TOKEN='gloopxl.token';
 const SAVES=['littlefarmisland.save.v1','sproutisle.save.v1'];               // eilanden op dit apparaat
 const get=()=>{try{return localStorage.getItem(TOKEN)||'';}catch(e){return '';}};
