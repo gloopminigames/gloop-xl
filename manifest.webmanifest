@@ -1,0 +1,16 @@
+{
+  "name": "Gloop XL",
+  "short_name": "Gloop XL",
+  "description": "Grotere, rustigere games voor tieners en volwassenen, van de makers van Gloop.",
+  "lang": "nl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#120E2A",
+  "theme_color": "#0E0B22",
+  "icons": [
+    {"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

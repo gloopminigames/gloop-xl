@@ -1,0 +1,86 @@
+/* Gloop XL – zelfde stickerstijl als Gloop, maar donker en rustiger. */
+@font-face{font-family:"Fredoka";font-weight:500;font-display:swap;src:url(/fonts/fredoka-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:600;font-display:swap;src:url(/fonts/fredoka-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:700;font-display:swap;src:url(/fonts/fredoka-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-weight:400;font-display:swap;src:url(/fonts/nunito-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-weight:600;font-display:swap;src:url(/fonts/nunito-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-weight:700;font-display:swap;src:url(/fonts/nunito-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-weight:800;font-display:swap;src:url(/fonts/nunito-latin-800-normal.woff2) format("woff2")}
+:root{--bg:#120E2A;--surface:#1E1846;--surface2:#272058;--text:#F4F2FF;--muted:#C9C2F0;--line:#0A0720;--slime:#6BE38A;--grape:#8B6CFF;--sun:#FFD84A;--pink:#FF7AC6}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Nunito",system-ui,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"Fredoka","Nunito",system-ui,sans-serif;line-height:1.1;margin:0}
+a{color:var(--slime)}
+:focus-visible{outline:3px solid var(--sun);outline-offset:3px;border-radius:8px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+@media (min-width:700px){.wrap{padding:0 32px}}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* kop */
+.top{border-bottom:3px solid var(--line);background:#0E0B22}
+.top .wrap{display:flex;align-items:center;gap:16px;min-height:68px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font:700 22px/1 "Fredoka",sans-serif}
+.brand img{width:40px;height:40px;border-radius:12px;border:3px solid var(--line)}
+.top nav{display:flex;gap:18px;margin-left:auto;align-items:center;flex-wrap:wrap}
+.top nav a{color:var(--text);text-decoration:none;font-weight:800}
+.top nav a:hover{color:var(--slime)}
+.back-gloop{display:inline-flex;align-items:center;gap:6px;background:var(--slime);color:#221A48!important;border:3px solid var(--line);border-radius:999px;padding:5px 12px;font-weight:800}
+.acc{font-weight:700;color:var(--muted);font-size:15px}
+.acc button{font:inherit;color:var(--slime);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+
+/* knoppen */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 19px/1.1 "Fredoka",sans-serif;text-decoration:none;border:3px solid var(--line);border-radius:999px;padding:13px 26px;min-height:52px;cursor:pointer;box-shadow:0 6px 0 var(--line);transition:transform .1s}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--line)}
+.btn-sun{background:var(--sun);color:#221A48}
+.btn-slime{background:var(--slime);color:#221A48}
+.btn-plain{background:var(--surface2);color:var(--text)}
+.btn[disabled]{opacity:.6;cursor:default;transform:none}
+
+/* blokken */
+main{padding:28px 0 56px}
+.hero{background:var(--surface);border:3px solid var(--line);border-radius:30px;box-shadow:0 6px 0 var(--line);padding:clamp(24px,5vw,52px);background-image:radial-gradient(circle at 88% 15%,rgba(107,227,138,.2),transparent 45%),radial-gradient(circle at 8% 95%,rgba(139,108,255,.35),transparent 50%)}
+.badge{display:inline-block;font:700 15px/1 "Fredoka",sans-serif;background:var(--slime);color:#221A48;border:3px solid var(--line);border-radius:999px;padding:7px 14px;margin-bottom:14px}
+.hero h1{font-size:clamp(34px,6vw,60px);max-width:16ch}
+.lead{color:var(--muted);font-weight:600;font-size:18px;margin:12px 0 0;max-width:60ch}
+.section{margin-top:44px}
+.section>h2{font-size:clamp(24px,3vw,32px);font-weight:600;margin-bottom:16px}
+.game{display:grid;grid-template-columns:minmax(0,320px) 1fr;gap:clamp(18px,4vw,40px);align-items:center;background:var(--surface);border:3px solid var(--line);border-radius:30px;box-shadow:0 6px 0 var(--line);padding:clamp(16px,3vw,28px)}
+.game-art{display:block;border:3px solid var(--line);border-radius:24px;overflow:hidden;aspect-ratio:1}
+.game-art img{display:block;width:100%;height:100%}
+.tag{font-weight:800;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.game h3{font-size:clamp(28px,4vw,44px);font-weight:700;margin:6px 0 10px}
+.game p{margin:0 0 18px;font-weight:600;max-width:62ch}
+.note{margin:16px 0 0!important;font-size:15px;color:var(--muted)}
+.soon{margin-top:16px;border:3px dashed #3a3175;border-radius:24px;padding:18px 22px;color:var(--muted);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.card{background:var(--surface);border:3px solid var(--line);border-radius:24px;box-shadow:0 6px 0 var(--line);padding:18px 20px}
+.card h3{font-size:20px;font-weight:600;margin:0 0 8px}
+.card ul{margin:0;padding-left:20px}.card li{margin-bottom:6px}.card p{margin:0}
+@media (max-width:720px){.game{grid-template-columns:1fr}.game-art{max-width:240px;margin:0 auto;width:100%}}
+
+/* formulier */
+.form-card{max-width:460px;margin:0 auto;background:var(--surface);border:3px solid var(--line);border-radius:30px;box-shadow:0 6px 0 var(--line);padding:clamp(20px,4vw,36px)}
+.form-card h1{font-size:clamp(30px,5vw,40px);margin-bottom:8px}
+label{display:block;font-weight:800;margin:18px 0 6px}
+input{width:100%;font:700 19px "Nunito",sans-serif;color:var(--text);background:var(--bg);border:3px solid var(--line);border-radius:16px;padding:12px 14px;min-height:52px}
+input:focus{outline:3px solid var(--sun);outline-offset:2px}
+.err{color:#FFB3B3;font-weight:800;margin:14px 0 0}
+.form-card .btn{width:100%;margin-top:22px}
+.small{font-size:15px;color:var(--muted);font-weight:600}
+
+/* teksten */
+.prose{max-width:74ch}
+.prose h1{font-size:clamp(32px,5vw,48px);margin-bottom:8px}
+.prose h2{font-size:24px;font-weight:600;margin:30px 0 8px}
+.prose p,.prose li{line-height:1.65}
+.prose table{width:100%;border-collapse:collapse;margin:8px 0 16px;font-size:16px}
+.prose th,.prose td{text-align:left;vertical-align:top;border:2px solid #3a3175;padding:8px 10px}
+.tbl{overflow-x:auto}
+
+/* voet */
+footer{border-top:3px solid var(--line);background:#0E0B22;padding:28px 0;color:var(--muted);font-size:15px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between;align-items:center}
+footer a{color:var(--text)}
+footer nav{display:flex;gap:16px;flex-wrap:wrap}
