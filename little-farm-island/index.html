@@ -2,19 +2,20 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
+<script>/* Werkt op gloop-xl.vercel.app/ én binnen Gloop op /xl/ */(function(){var b=document.createElement("base");b.href=/^\/xl(\/|$)/.test(location.pathname)?"/xl/":"/";document.head.appendChild(b);})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#3b8f96">
 <title>Little Farm Island – Gloop XL</title>
 <meta name="description" content="Speel Little Farm Island: verbouw gewassen, versier je eiland en laat het opbloeien tot Wondereiland.">
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" href="/little-farm-island/icon-192.png">
-<link rel="apple-touch-icon" href="/little-farm-island/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="little-farm-island/icon-192.png">
+<link rel="apple-touch-icon" href="little-farm-island/icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Farm Island">
 <style>
-@font-face{font-family:"Fredoka";font-weight:500;font-display:swap;src:url(/fonts/fredoka-latin-500-normal.woff2) format("woff2")}
-@font-face{font-family:"Fredoka";font-weight:600;font-display:swap;src:url(/fonts/fredoka-latin-600-normal.woff2) format("woff2")}
-@font-face{font-family:"Fredoka";font-weight:700;font-display:swap;src:url(/fonts/fredoka-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:500;font-display:swap;src:url(fonts/fredoka-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:600;font-display:swap;src:url(fonts/fredoka-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:700;font-display:swap;src:url(fonts/fredoka-latin-700-normal.woff2) format("woff2")}
 :root{
   --cream:#fdf6e8; --card:#fffbf3; --ink:#5b3b22; --ink-soft:#8a6a4d;
   --honey:#ffd073; --honey-deep:#e9ac3f; --leaf:#7fb356; --sea:#3b8f96; --chip:#efe3cc;
@@ -173,7 +174,7 @@ body.placing #seedbar{opacity:.45;pointer-events:none}
 <body>
 <canvas id="c" aria-label="Little Farm Island, je eiland"></canvas>
 <div id="sky"></div>
-<div id="nogl"><div><p><b>Je browser kan dit 3D-spel niet laten zien.</b></p><p>Probeer een nieuwere browser (bijvoorbeeld Chrome, Safari of Firefox) of zet hardwareversnelling aan.</p><p><a href="/" style="color:#fff">Terug naar Gloop XL</a></p></div></div>
+<div id="nogl"><div><p><b>Je browser kan dit 3D-spel niet laten zien.</b></p><p>Probeer een nieuwere browser (bijvoorbeeld Chrome, Safari of Firefox) of zet hardwareversnelling aan.</p><p><a href="./" style="color:#fff">Terug naar Gloop XL</a></p></div></div>
 
 <div id="top">
   <div class="pill coinPill" id="coinPill" title="Munten en boerenrang">
@@ -231,12 +232,12 @@ body.placing #seedbar{opacity:.45;pointer-events:none}
     <div class="row" id="accRow" hidden></div>
     <div class="row danger"><span>Opnieuw beginnen<small>Wist dit eiland voorgoed</small></span><button class="tg" id="tgReset">Opnieuw beginnen</button></div>
     <h4>Meer</h4>
-    <div class="links"><a href="/">⬅️ Gloop XL</a><a href="/#hoe">❓ Hoe speel je?</a><a href="https://gloopie.vercel.app/" data-gloop="/">🟢 Gloop</a><a href="/privacy">🔒 Privacy</a><a href="/cookies">🍪 Cookies</a></div>
+    <div class="links"><a href="./">⬅️ Gloop XL</a><a href="./#hoe">❓ Hoe speel je?</a><a href="https://gloopie.vercel.app/" data-gloop="/">🟢 Gloop</a><a href="privacy">🔒 Privacy</a><a href="cookies">🍪 Cookies</a></div>
   </div>
 </div>
 
-<script src="/vendor/three.r128.min.js"></script>
-<script src="/xl.js"></script>
+<script src="vendor/three.r128.min.js"></script>
+<script src="xl.js"></script>
 <script>
 window.__lfiBoot=()=>{'use strict';
 const $=s=>document.querySelector(s);
@@ -1028,7 +1029,7 @@ window.__lfi={toast};
    Ingelogd op Gloop XL (met je Gloop-account)? Dan gaat je eiland mee in je account en speel je op elk apparaat verder.
    Welke save wint: zelfde regel als pickLfi in lib/lfi.js van Gloop (generatie, dan voortgang, dan nieuwste). */
 (()=>{
-const KEY='littlefarmisland.save.v1',OLD='sproutisle.save.v1',HERE='/little-farm-island';
+const KEY='littlefarmisland.save.v1',OLD='sproutisle.save.v1';
 const prog=s=>(s.harvests||0)+(s.fishTotal||0);
 const better=(a,b)=>{if(!b||b.v!==1)return false;if(!a||a.v!==1)return true;const ga=a.gen||0,gb=b.gen||0;if(ga!==gb)return gb>ga;
   const pa=prog(a),pb=prog(b);if(pa!==pb)return pb>pa;return (b.last||0)>(a.last||0);};
@@ -1044,7 +1045,7 @@ function render(){
   const small=document.createElement('small');span.appendChild(small);row.appendChild(span);
   if(user){small.textContent=`Ingelogd als ${user.name}. Je eiland wordt bewaard en je speelt op elk apparaat verder.`;}
   else{small.textContent='Log in met je Gloop-account om op al je apparaten te spelen';
-    const a=document.createElement('a');a.className='tg';a.href='/inloggen?terug='+encodeURIComponent(HERE);a.textContent='Inloggen';a.style.textDecoration='none';a.style.color='inherit';row.appendChild(a);}
+    const a=document.createElement('a');a.className='tg';a.href=XL.loginUrl('little-farm-island');a.textContent='Inloggen';a.style.textDecoration='none';a.style.color='inherit';row.appendChild(a);}
 }
 async function push(s,keep){
   if(!user||!s)return;lastPush=Date.now();

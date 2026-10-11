@@ -1,18 +1,19 @@
-<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0E0B22">
+<!doctype html><html lang="nl"><head><meta charset="utf-8"><script>/* Werkt op gloop-xl.vercel.app/ én binnen Gloop op /xl/ */(function(){var b=document.createElement("base");b.href=/^\/xl(\/|$)/.test(location.pathname)?"/xl/":"/";document.head.appendChild(b);})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0E0B22">
 <title>Inloggen – Gloop XL</title><meta name="description" content="Log in op Gloop XL met je Gloop-account.">
-<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icons/icon-192.png"><link rel="apple-touch-icon" href="/icons/icon-180.png"><link rel="stylesheet" href="/xl.css">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-180.png"><link rel="stylesheet" href="xl.css">
 </head><body>
 <a class="sr-only" href="#inhoud">Naar de inhoud</a>
 <header class="top"><div class="wrap">
-<a class="brand" href="/"><img src="/icons/icon-192.png" alt="">Gloop XL</a>
-<nav aria-label="Hoofdmenu"><a href="/#games">Games</a><span class="acc" id="acc" aria-live="polite"></span><a class="back-gloop" href="https://gloopie.vercel.app/" data-gloop="/">← Gloop</a></nav>
+<a class="brand" href="./"><img src="icons/icon-192.png" alt="">Gloop XL</a>
+<nav aria-label="Hoofdmenu"><a href="./#games">Games</a><span class="acc" id="acc" aria-live="polite"></span><a class="back-gloop" href="https://gloopie.vercel.app/" data-gloop="/">← Gloop</a></nav>
 </div></header>
 <main id="inhoud"><div class="wrap">
 
 <div class="form-card">
 <h1>Inloggen</h1>
 <p class="small">Met je <b>Gloop-account</b>: dezelfde spelersnaam en pincode als op Gloop.</p>
-<div id="already" hidden><p>Je bent al ingelogd als <b data-user-name></b>.</p><a class="btn btn-sun" id="goOn" href="/">Verder spelen</a></div>
+<div id="already" hidden><p>Je bent al ingelogd als <b data-user-name></b>.</p><a class="btn btn-sun" id="goOn" href="./">Verder spelen</a></div>
 <form id="f" novalidate>
 <label for="name">Spelersnaam</label>
 <input id="name" name="name" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="16" required>
@@ -25,10 +26,10 @@
 </div>
 </div></main>
 <footer><div class="wrap"><span>© 2026 Gloop XL · een site van <a href="https://gloopie.vercel.app/" data-gloop="/">Gloop</a></span>
-<nav aria-label="Onderaan"><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a><a href="mailto:gloop.mini.games@gmail.com">Contact</a><a href="https://gloopie.vercel.app/" data-gloop="/">Naar Gloop</a></nav></div></footer>
-<script src="/xl.js"></script>
+<nav aria-label="Onderaan"><a href="privacy">Privacy</a><a href="cookies">Cookies</a><a href="mailto:gloop.mini.games@gmail.com">Contact</a><a href="https://gloopie.vercel.app/" data-gloop="/">Naar Gloop</a></nav></div></footer>
+<script src="xl.js"></script>
 <script>
-(()=>{const q=new URLSearchParams(location.search);const back=XL.safeBack(q.get('terug'));
+(()=>{const q=new URLSearchParams(location.search);const back=XL.BASE+XL.safeBack(q.get('terug'));
 const f=document.getElementById('f'),err=document.getElementById('err'),go=document.getElementById('go');
 document.getElementById('goOn').href=back;
 XL.me().then(u=>{if(u){f.hidden=true;document.getElementById('already').hidden=false;}});

@@ -1,11 +1,11 @@
 /* Gloop XL – zelfde stickerstijl als Gloop, maar donker en rustiger. */
-@font-face{font-family:"Fredoka";font-weight:500;font-display:swap;src:url(/fonts/fredoka-latin-500-normal.woff2) format("woff2")}
-@font-face{font-family:"Fredoka";font-weight:600;font-display:swap;src:url(/fonts/fredoka-latin-600-normal.woff2) format("woff2")}
-@font-face{font-family:"Fredoka";font-weight:700;font-display:swap;src:url(/fonts/fredoka-latin-700-normal.woff2) format("woff2")}
-@font-face{font-family:"Nunito";font-weight:400;font-display:swap;src:url(/fonts/nunito-latin-400-normal.woff2) format("woff2")}
-@font-face{font-family:"Nunito";font-weight:600;font-display:swap;src:url(/fonts/nunito-latin-600-normal.woff2) format("woff2")}
-@font-face{font-family:"Nunito";font-weight:700;font-display:swap;src:url(/fonts/nunito-latin-700-normal.woff2) format("woff2")}
-@font-face{font-family:"Nunito";font-weight:800;font-display:swap;src:url(/fonts/nunito-latin-800-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:500;font-display:swap;src:url(fonts/fredoka-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:600;font-display:swap;src:url(fonts/fredoka-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:700;font-display:swap;src:url(fonts/fredoka-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-weight:400;font-display:swap;src:url(fonts/nunito-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-weight:600;font-display:swap;src:url(fonts/nunito-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-weight:700;font-display:swap;src:url(fonts/nunito-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-weight:800;font-display:swap;src:url(fonts/nunito-latin-800-normal.woff2) format("woff2")}
 :root{--bg:#120E2A;--surface:#1E1846;--surface2:#272058;--text:#F4F2FF;--muted:#C9C2F0;--line:#0A0720;--slime:#6BE38A;--grape:#8B6CFF;--sun:#FFD84A;--pink:#FF7AC6}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -84,3 +84,29 @@ footer{border-top:3px solid var(--line);background:#0E0B22;padding:28px 0;color:
 footer .wrap{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between;align-items:center}
 footer a{color:var(--text)}
 footer nav{display:flex;gap:16px;flex-wrap:wrap}
+
+/* iPhone (ook binnen de Gloop-app): niet onder de statusbalk of de thuisbalk */
+.top{padding-top:env(safe-area-inset-top,0px)}
+footer{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+
+/* Telefoon: kop op één regel, compacter */
+@media (max-width:600px){
+  .top .wrap{flex-wrap:nowrap;gap:10px;min-height:62px}
+  .brand{font-size:19px;gap:8px;flex-shrink:0}
+  .brand img{width:34px;height:34px;border-radius:10px}
+  .top nav{gap:12px;flex-wrap:nowrap;min-width:0}
+  .top nav>a[href$="#games"]{display:none}
+  .acc{font-size:14px;white-space:nowrap;display:flex;align-items:center;gap:4px;min-width:0}
+  .acc b{overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:8.5em}
+  .acc button,.acc a{flex-shrink:0}
+  .acc-l{display:none}
+  .back-gloop{padding:4px 10px;font-size:15px;flex-shrink:0}
+  main{padding:18px 0 40px}
+  .hero{padding:22px 20px;border-radius:26px}
+  .hero h1{font-size:31px}
+  .lead{font-size:16px}
+  .badge{font-size:13px;margin-bottom:10px}
+  .section{margin-top:32px}
+  .game{border-radius:26px}
+  .game-art{max-width:200px}
+}
