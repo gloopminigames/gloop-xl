@@ -4,8 +4,9 @@ Grotere, rustigere games voor tieners en volwassenen, van de makers van [Gloop](
 Statische site: geen build-stap, alles zelf gehost (geen CDN's, geen Google Fonts).
 
 ## Mappen
-- `index.html`: startpagina met de games en uitleg (`#hoe`)
-- `little-farm-island/index.html`: Little Farm Island (Three.js r128, één bestand)
+- `index.html`: startpagina met de games
+- `little-farm-island/index.html`: spelpagina (het spel in een kader, met uitleg eronder)
+- `little-farm-island/spel/index.html`: het spel zelf (Three.js r128, één bestand)
 - `inloggen.html`: inloggen met je Gloop-account
 - `privacy.html`, `cookies.html`: verklaringen
 - `xl.css`, `xl.js`: stijl en account-hulp (gedeeld door alle pagina's)

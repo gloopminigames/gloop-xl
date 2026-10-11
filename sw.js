@@ -1,10 +1,10 @@
 // Gloop XL – offline spelen. Werkt op gloop-xl.vercel.app/ én binnen Gloop op /xl/ (alles ten opzichte van de scope).
 // Pagina's: eerst internet (dan zie je updates), anders de cache. Vaste bestanden (Three.js, lettertypen, iconen): eerst de cache.
 // Iets veranderd in vendor/, fonts/ of icons/? Verhoog dan VERSIE.
-const VERSIE = 'gloopxl-v3';
+const VERSIE = 'gloopxl-v4';
 const SCOPE = self.registration.scope;                 // bijv. https://gloop-xl.vercel.app/ of https://gloopie.vercel.app/xl/
 const BASE = new URL(SCOPE).pathname;
-const START = ['', 'little-farm-island', 'privacy', 'cookies', 'xl.css', 'xl.js', 'manifest.webmanifest',
+const START = ['', 'little-farm-island', 'little-farm-island/spel', 'privacy', 'cookies', 'xl.css', 'xl.js', 'manifest.webmanifest',
   'vendor/three.r128.min.js', 'icons/icon-192.png', 'little-farm-island/icon-192.png', 'little-farm-island/icon-512.png',
   'fonts/fredoka-latin-500-normal.woff2', 'fonts/fredoka-latin-600-normal.woff2', 'fonts/fredoka-latin-700-normal.woff2',
   'fonts/nunito-latin-400-normal.woff2', 'fonts/nunito-latin-600-normal.woff2', 'fonts/nunito-latin-700-normal.woff2', 'fonts/nunito-latin-800-normal.woff2']
@@ -31,5 +31,5 @@ self.addEventListener('fetch', e => {
     return;
   }
   e.respondWith(fetch(req).then(put).catch(() => caches.match(req, { ignoreSearch: req.mode === 'navigate' })
-    .then(r => r || (req.mode === 'navigate' ? caches.match(new URL('little-farm-island', SCOPE).href) : Response.error()))));
+    .then(r => r || (req.mode === 'navigate' ? caches.match(new URL('little-farm-island/spel', SCOPE).href) : Response.error()))));
 });
