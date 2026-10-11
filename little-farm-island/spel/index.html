@@ -39,7 +39,7 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px}
 /* HUD */
 #top{position:fixed;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 0;display:flex;gap:6px;justify-content:center;align-items:stretch;pointer-events:none;z-index:5}
 .pill{background:var(--cream);border-radius:22px;box-shadow:var(--shadow);padding:7px 14px;display:flex;align-items:center;gap:7px;font-weight:600}
-.coinPill{min-width:84px;flex:none;flex-direction:column;align-items:stretch;gap:3px;padding:6px 14px}
+.coinPill{min-width:84px;flex:none;flex-direction:column;align-items:stretch;gap:3px;padding:6px 14px;pointer-events:auto;cursor:pointer}
 .coinRow{display:flex;align-items:center;gap:7px;font-size:20px;font-weight:700}
 .coin{width:18px;height:18px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 32%,#fff6c4 0 18%,#ffd84a 40%,#e0a21c 100%);box-shadow:inset 0 -2px 0 rgba(150,90,0,.35)}
 .coin.sm{width:14px;height:14px}
@@ -77,6 +77,7 @@ canvas#c{-webkit-touch-callout:none}
 #hint.on{opacity:1;transform:translateX(-50%) translateY(0)}
 #toasts{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 186px);display:flex;flex-direction:column;gap:6px;align-items:flex-start;pointer-events:none;z-index:7;max-width:calc(100vw - 24px)}
 .toast{background:rgba(253,246,232,.96);border-radius:16px;padding:8px 14px;font-size:15px;font-weight:600;box-shadow:var(--shadow);animation:tin .25s ease-out, tout .4s ease-in 2.6s forwards}
+@media (max-width:600px){.toast{font-size:13px;padding:6px 11px;border-radius:13px}#toasts{max-width:min(320px,calc(100vw - 24px))}}
 @keyframes tin{from{opacity:0;transform:translateY(8px) scale(.96)}}
 @keyframes tout{to{opacity:0;transform:translateY(-6px)}}
 #floaties{position:fixed;inset:0;pointer-events:none;z-index:4;overflow:hidden}
@@ -102,6 +103,8 @@ canvas#c{-webkit-touch-callout:none}
 #shopBtn.nudge{animation:nudge 1.4s ease-in-out infinite}
 @keyframes nudge{50%{transform:scale(1.08) rotate(-4deg)}}
 .divider{flex:none;width:1px;align-self:stretch;margin:8px 1px;background:rgba(255,255,255,.55);border-radius:1px}
+#seedMore{pointer-events:auto;flex:none;width:30px;height:56px;border-radius:14px;background:var(--cream);box-shadow:var(--shadow);font-size:26px;font-weight:700;color:#5a3b1e;display:grid;place-items:center;margin-left:-2px}
+#seedMore[hidden]{display:none}
 #seedbar{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;min-width:0;flex:0 1 auto;touch-action:pan-x;padding:8px 7px;margin:-8px -7px;scroll-snap-type:x proximity;scroll-padding:0 7px}
 #seedbar::-webkit-scrollbar{display:none}
 #seedbar.fadeR{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent)}
@@ -125,6 +128,8 @@ body.placing #seedbar{opacity:.45;pointer-events:none}
 #sheet,#opts{position:fixed;left:0;right:0;bottom:0;max-height:72%;background:var(--cream);border-radius:28px 28px 0 0;z-index:11;display:flex;flex-direction:column;transform:translateY(105%);transition:transform .32s cubic-bezier(.2,.9,.3,1);box-shadow:0 -10px 30px rgba(0,0,0,.18);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (min-width:760px){#sheet,#opts{left:50%;right:auto;width:min(720px,94vw);transform:translate(-50%,105%)}#sheet.on,#opts.on{transform:translate(-50%,0)!important}}
 #sheet.on,#opts.on{transform:none}
+/* Tijdens het wegschuiven geen tikken meer opvangen (anders mist je eerste tik na 'kopen' het gras) */
+#sheet:not(.on),#opts:not(.on){pointer-events:none}
 #opts{max-height:84%}
 .opt-body{overflow-y:auto;padding:0 20px 22px;touch-action:pan-y}
 .opt-body h4{margin:18px 0 6px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
@@ -141,6 +146,9 @@ body.placing #seedbar{opacity:.45;pointer-events:none}
 .links a{color:var(--ink);font-weight:700;background:var(--chip);border-radius:14px;padding:7px 12px;text-decoration:none}
 #optBtn{pointer-events:auto;flex:none;align-self:center;width:48px;height:48px;border-radius:50%;background:var(--cream);box-shadow:var(--shadow);font-size:22px;display:grid;place-items:center}
 #optBtn:active{transform:scale(.92)}
+#zoom{position:fixed;right:10px;top:calc(env(safe-area-inset-top,0px) + 74px);display:flex;flex-direction:column;gap:8px;z-index:5}
+#zoom button{width:44px;height:44px;border-radius:50%;background:var(--cream);box-shadow:var(--shadow);font-size:22px;font-weight:700;color:#5a3b1e;display:grid;place-items:center;line-height:1}
+#zoom button:active{transform:scale(.92)}
 #exitBtn{pointer-events:auto;flex:none;align-self:center;width:48px;height:48px;border-radius:50%;background:var(--cream);box-shadow:var(--shadow);font-size:22px;font-weight:700;color:#5a3b1e;display:grid;place-items:center}
 #exitBtn[hidden]{display:none}
 #exitBtn:active{transform:scale(.92)}
@@ -191,6 +199,7 @@ body.placing #seedbar{opacity:.45;pointer-events:none}
   <button id="exitBtn" aria-label="Volledig scherm sluiten" hidden>✕</button>
 </div>
 <div class="pill clock" id="clock">☀️ 08:00</div>
+<div id="zoom" role="group" aria-label="Zoomen"><button id="zIn" aria-label="Inzoomen">+</button><button id="zOut" aria-label="Uitzoomen">−</button><button id="zAll" aria-label="Heel eiland bekijken">🏝️</button></div>
 <div id="tonic" class="pill" hidden>🐟 <span>Groei 2×</span> <b id="tonicT">0:00</b></div>
 <div id="place" class="pill"><span id="placeTxt">Tik op gras om te plaatsen</span><button id="placeDone">Klaar</button></div>
 <div id="edit" role="menu"></div>
@@ -203,6 +212,7 @@ body.placing #seedbar{opacity:.45;pointer-events:none}
   <button id="shopBtn" class="app" aria-label="Open de Strandwinkel">⛵</button>
   <div class="divider"></div>
   <div id="seedbar" role="toolbar" aria-label="Zaadjes"></div>
+  <button id="seedMore" aria-label="Meer zaadjes" hidden>›</button>
 </div></div>
 
 <div id="scrim"></div>
@@ -287,6 +297,10 @@ const DECOR=[
   {id:'beehive',name:'Bijenkorf',e:'🐝',desc:'Gewassen binnen 2 tegels +50% waard',cost:180,beauty:8,lvl:3,tab:'farm'},
   {id:'windmill',name:'Windmolen',e:'🌬️',desc:'Alles groeit 15% sneller (max. 3)',cost:300,beauty:20,lvl:3,tab:'farm'},
   {id:'lighthouse',name:'Vuurtoren',e:'🗼',desc:'Een baken over de hele zee',cost:600,beauty:45,lvl:3,tab:'island',max:1},
+  {id:'fountain',name:'Fontein',e:'⛲',desc:'Klaterend water midden op je eiland',cost:700,beauty:70,lvl:3,tab:'decor'},
+  {id:'statue',name:'Standbeeld',e:'🗿',desc:'Een eerbetoon aan de beste boer',cost:1200,beauty:130,lvl:4,tab:'decor'},
+  {id:'gazebo',name:'Prieel',e:'⛱️',desc:'Een schaduwrijk plekje met uitzicht',cost:2400,beauty:260,lvl:4,tab:'decor'},
+  {id:'balloon',name:'Luchtballon',e:'🎈',desc:'Zweeft boven je eiland, zichtbaar van ver',cost:5000,beauty:500,lvl:4,tab:'island',max:1},
 ];
 const DEC=Object.fromEntries(DECOR.map(d=>[d.id,d]));
 const EXPAND_COST=[150,400,900,1800];
@@ -419,6 +433,7 @@ function makeFarmer(kind){const F=FARMERS[kind]||FARMERS.man,g=new THREE.Group()
 function stageOf(c){const cd=CROP[c.id];const f=c.p/cd.grow;
   if(f>=1)return 3; if(c.r)return 2; if(f<.08)return 0; if(f<.5)return 1; return 2;}
 function cropMesh(t){const c=t.crop,st=stageOf(c),g=new THREE.Group();
+  if(st===3){const gl=glow(g,0,.32,0,1.25,true);gl.material.color.set('#ffe39a');gl.material.opacity=.5;}   // rijp: zacht gloeien
   const gold=!!c.g,L=gold?'#cdb24e':'#5f9e3a',L2=gold?'#b89c38':'#4c8a30';
   if(st===0){B(g,.3,.05,.3,'#5e3c22',0,0,0);B(g,.05,.1,.05,L,0,.05,0);return g;}
   const inner=new THREE.Group();inner.scale.setScalar(st===1?.55:st===2?.82:1);g.add(inner);
@@ -466,6 +481,14 @@ function decorMesh(t){const g=new THREE.Group();const id=t.decor;
       B(f,.96,.07,.06,'#a47850',0,.14,0);B(f,.96,.07,.06,'#a47850',0,.3,0);f.rotation.y=t.rot*Math.PI/2;g.add(f);break;}
     case'flowers':{B(g,.84,.14,.84,'#7a5030',0,0,0);const cols=['#ff7aa2','#ffd166','#c77dff','#ff9f68','#ffffff','#ff5e7e'];
       let k=0;for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){const x=i*.25,z=j*.25;B(g,.04,.14,.04,'#4c8a30',x,.14,z);B(g,.12,.09,.12,cols[(k+++t.x*3+t.z)%cols.length|0]||cols[0],x,.27,z);}break;}
+    case'fountain':B(g,.86,.16,.86,'#b9c4cc',0,0,0);B(g,.7,.04,.7,'#7fd3f0',0,.16,0);B(g,.14,.42,.14,'#cfd8de',0,.16,0);
+      B(g,.38,.08,.38,'#b9c4cc',0,.56,0);B(g,.26,.05,.26,'#9fe6ff',0,.64,0);B(g,.06,.16,.06,'#d8f6ff',0,.66,0);break;
+    case'statue':B(g,.62,.3,.62,'#cfc6b4',0,0,0);B(g,.4,.08,.4,'#bdb3a0',0,.3,0);B(g,.34,.46,.28,'#ece4d2',0,.38,0);
+      B(g,.3,.28,.28,'#ece4d2',0,.84,0);B(g,.12,.3,.1,'#ece4d2',.24,.5,0);B(g,.34,.07,.3,'#e2b23a',0,1.12,0);break;
+    case'gazebo':B(g,.92,.08,.92,'#c8a475',0,0,0);for(const[x,z]of[[-.38,-.38],[.38,-.38],[-.38,.38],[.38,.38]])B(g,.08,.72,.08,'#fffaf0',x,.08,z);
+      B(g,1,.1,1,'#e06a5a',0,.8,0);B(g,.66,.12,.66,'#e06a5a',0,.9,0);B(g,.3,.12,.3,'#e06a5a',0,1.02,0);B(g,.6,.16,.3,'#a47850',0,.08,0);break;
+    case'balloon':B(g,.34,.22,.34,'#a47850',0,0,0);for(const[x,z]of[[-.14,-.14],[.14,-.14],[-.14,.14],[.14,.14]])B(g,.03,.5,.03,'#6b4a33',x,.22,z);
+      B(g,.7,.18,.7,'#ff7aa2',0,.7,0);B(g,.86,.3,.86,'#ffd166',0,.88,0);B(g,.86,.3,.86,'#ff7aa2',0,1.18,0);B(g,.66,.2,.66,'#ffd166',0,1.48,0);B(g,.36,.12,.36,'#ff7aa2',0,1.68,0);break;
     case'lantern':B(g,.24,.06,.24,'#5a4030',0,0,0);B(g,.08,.82,.08,'#5a4030',0,0,0);B(g,.3,.05,.08,'#5a4030',.1,.8,0);
       B(g,.17,.22,.17,'#ffbf5e',.22,.52,0,true);B(g,.21,.04,.21,'#4a3526',.22,.74,0);glow(g,.22,.63,0,1.9);pool(g,1.4,'#ffcf7a',.5,false,.22,0);blob(g,.5);
       g.userData.tick=(dt,time)=>{};break;
@@ -627,14 +650,14 @@ function harvest(t){const c=t.crop,cd=CROP[c.id];
   burst(tileWorld(t,.4),cd.col,16,2);burst(tileWorld(t,.4),'#ffe27a',6,2.4);
   sfx.harvest(combo);buzz(8);
   const ch=.05*((decorCount.scarecrow||0)?2:1);
-  if(Math.random()<ch){S.golden++;toast('✨ Gouden zaadje gevonden! Tik erop in de zaadbalk');sfx.tonic();}
+  if(Math.random()<ch){S.golden++;toast('✨ Gouden zaadje! Zet ✨ in de zaadbalk aan: je volgende gewas levert 3× zoveel op');sfx.tonic();}
   if(cd.regrow){c.p=0;c.r=1;c.w=0;}else t.crop=null;
   refreshTile(t);popTile(t);
   if(S.harvests===3)toast('🥕 Wortels zijn vrijgespeeld!');
   if(!S.rod&&S.harvests>=1){S.rod=true;fishTimer=6;setTimeout(()=>{toast('🎣 Er is een hengel aangespoeld!');},600);}
   if(S.hint===2||S.hint===1)setHintStep(3);
   const tier=TIERS.filter(x=>S.harvests>=x).length;
-  if(tier>S.tier){S.tier=tier;toast(`🌾 ${TIER_NAMES[tier]}! Gewassen leveren 10% meer op en groeien 5% sneller`);sfx.level();}
+  if(tier>S.tier){S.tier=tier;showBanner('Nieuwe boerenrang 🧑‍🌾',TIER_NAMES[tier],'Al je gewassen leveren nu 10% meer op en groeien 5% sneller');sfx.level();}
   checkLevel();renderSeeds(true);save();}
 
 let placing=null;
@@ -643,8 +666,9 @@ function tillTile(t){t.type='soil';refreshTile(t);popTile(t);burst(tileWorld(t,.
   if(!S._tilledOnce){S._tilledOnce=true;toast('Nieuw stukje akker 🌱');}save();}
 function startTilling(){stopPlacing();closeEdit();tilling=true;$('#placeTxt').textContent='⛏️ Tik op gras om te spitten';$('#placeDone').textContent='Klaar';
   $('#place').classList.add('on');renderSeeds();}
-function startPlacing(id){placing=id;tilling=false;closeShop();document.body.classList.add('placing');
-  $('#placeTxt').textContent=`Tik op gras om te plaatsen: ${DEC[id].e} ${DEC[id].name}`;$('#placeDone').textContent='Klaar';$('#place').classList.add('on');}
+let placedN=0;
+function startPlacing(id){placing=id;placedN=0;tilling=false;closeShop();document.body.classList.add('placing');
+  $('#placeTxt').textContent=`Tik op gras om te plaatsen: ${DEC[id].e} ${DEC[id].name} (${DEC[id].cost} per stuk)`;$('#placeDone').textContent='Klaar';$('#place').classList.add('on');}
 /* ---- Bewerken: lang indrukken ---- */
 let editing=null,moving=null;
 const selRing=new THREE.Group();{const sm=new THREE.MeshBasicMaterial({color:'#ffd073',depthTest:false,transparent:true});
@@ -690,7 +714,8 @@ function place(t){const d=DEC[placing];
   if(S.coins<d.cost){toast(`Je hebt nog ${d.cost-S.coins} munten nodig`);stopPlacing();return;}
   S.coins-=d.cost;t.type='grass';t.decor=d.id;t.rot=fenceRot(t);recountDecor();refreshTile(t);refreshNeighbors(t);popTile(t,.5);
   burst(tileWorld(t,.3),'#fff3c4',14,1.8);sfx.buy();floaty(tileWorld(t,1),`+${d.beauty} schoonheid`,'pink');bumpCoins();
-  critters();checkLevel();save();
+  critters();checkLevel();save();placedN++;
+  $('#placeTxt').textContent=`${d.e} ${placedN} geplaatst. Tik op gras voor nog een, of op Klaar`;
   if((d.max&&(decorCount[d.id]||0)>=d.max)||S.coins<d.cost)stopPlacing();}
 
 let expanding=null;
@@ -705,10 +730,11 @@ function expand(){if(S.expansions>=EXPAND_COST.length||expanding)return;const co
 function checkLevel(){const b=beauty();let L=0;LEVELS.forEach((l,i)=>{if(b>=l.at)L=i;});
   if(L>S.level){S.level=L;levelUp(L);}
   hudDirty=true;}
+function showBanner(small,big,unl){$('#banner .small').textContent=small;$('#bannerName').textContent=big;$('#bannerUnl').textContent=unl||'';$('#bannerUnl').style.display=unl?'block':'none';
+  $('#banner').classList.add('on');clearTimeout(showBanner.t);showBanner.t=setTimeout(()=>$('#banner').classList.remove('on'),3400);}
 function levelUp(L){const lv=LEVELS[L];grassTarget.set(lv.grass);seaTarget.set(lv.sea);
   const unl=[...CROPS.filter(c=>c.un.lvl===L).map(c=>c.e+' '+c.name),...DECOR.filter(d=>d.lvl===L).map(d=>d.e+' '+d.name)];
-  $('#bannerName').textContent=lv.name;$('#bannerUnl').textContent=unl.length?'Nieuw: '+unl.join(', '):'Je eiland bloeit helemaal op';
-  $('#bannerUnl').style.display='block';$('#banner').classList.add('on');setTimeout(()=>$('#banner').classList.remove('on'),3200);
+  showBanner('Je eiland is nu',lv.name,unl.length?'Nieuw: '+unl.join(', '):'Je eiland bloeit helemaal op');
   for(const t of T.values())rebuildTuft(t);
   for(let i=0;i<60;i++){const a=Math.random()*Math.PI*2,r=Math.random()*S.h;burst(new THREE.Vector3(Math.cos(a)*r,.3,Math.sin(a)*r),pick(['#ffd166','#ff8fb1','#9fe07a','#8fd6ff','#fff']),1,3.2);}
   sfx.level();buzz([20,40,20]);renderSeeds(true);save();}
@@ -747,8 +773,9 @@ const floatWrap=$('#floaties');
 function floaty(pos,text,cls){const v=pos.clone().project(cam);const d=document.createElement('div');d.className='floaty '+(cls||'');d.textContent=text;
   d.style.left=((v.x+1)/2*innerWidth)+'px';d.style.top=((1-v.y)/2*innerHeight)+'px';floatWrap.appendChild(d);setTimeout(()=>d.remove(),1250);}
 const toastWrap=$('#toasts');
-function toast(msg){const d=document.createElement('div');d.className='toast';d.textContent=msg;toastWrap.appendChild(d);
-  while(toastWrap.children.length>3)toastWrap.firstChild.remove();setTimeout(()=>d.remove(),3050);}
+function toast(msg){const last=toastWrap.lastElementChild;if(last&&last.textContent===msg)return;   // geen dubbele
+  const d=document.createElement('div');d.className='toast';d.textContent=msg;toastWrap.appendChild(d);
+  while(toastWrap.children.length>2)toastWrap.firstChild.remove();setTimeout(()=>d.remove(),3050);}
 function bumpCoins(){const p=$('#coinPill');p.classList.remove('bump');void p.offsetWidth;p.classList.add('bump');hudDirty=true;}
 let hintTimer=0;
 function showHint(txt,ms){if(!S.hints)return;const h=$('#hint');h.textContent=txt;h.classList.add('on');clearTimeout(hintTimer);if(ms)hintTimer=setTimeout(()=>{h.classList.remove('on');},ms);}
@@ -832,21 +859,22 @@ function renderSeeds(){const sig=[S.sel,S.golden,S.useGolden,S.harvests>=3,S.lev
   {const b=document.createElement('button');b.className='app seed till'+(tilling?' sel':'');b.innerHTML=`<span class="e">⛏️</span><span class="p">Spitten</span>`;
     b.setAttribute('aria-label',tilling?'Spitten staat aan, tik om te stoppen':'Spitten: tik op gras om nieuwe akkers te maken');b.setAttribute('aria-pressed',tilling);
     b.onclick=()=>{initAudio();tilling?stopPlacing():startTilling();};bar.appendChild(b);}
-  if(S.golden>0){const b=document.createElement('button');b.className='app seed gold'+(S.useGolden?' sel':'');b.innerHTML=`<span class="e">✨</span><span class="p">×${S.golden}</span>`;
-    b.setAttribute('aria-label',`Gouden zaadjes: ${S.golden}. Het volgende gewas ${S.useGolden?'gebruikt er een':'gebruikt er geen'}`);
-    b.onclick=()=>{S.useGolden=!S.useGolden;toast(S.useGolden?'✨ Het volgende gewas krijgt een gouden zaadje':'Gouden zaadje weggelegd');renderSeeds(true);};bar.appendChild(b);}
   let teased=false;
   for(const cd of CROPS){const un=cropUnlocked(cd);if(!un){if(teased)continue;teased=true;}const b=document.createElement('button');b.className='app seed'+(un?'':' locked')+(S.sel===cd.id&&un?' sel':'');
     const req=cd.un.harv!=null?`${cd.un.harv} oogsten`:LEVELS[cd.un.lvl].name;
     b.innerHTML=un?`<span class="e">${cd.e}</span><span class="p">${cd.cost}<span class="coin sm"></span></span>`:`<span class="e">${cd.e}</span><span class="lk">🔒</span>`;
     b.setAttribute('aria-label',un?`${cd.name}, kost ${cd.cost}, levert ${cd.sell} op`:`${cd.name}, vrij bij ${req}`);
-    b.onclick=()=>{if(!un){toast(`${cd.e} ${cd.name} komt vrij bij ${req}`);return;}S.sel=cd.id;renderSeeds(true);
+    b.onclick=()=>{if(!un){toast(`${cd.e} ${cd.name} komt vrij bij ${req}`);return;}if(S.sel===cd.id)return;S.sel=cd.id;renderSeeds(true);
       toast(`${cd.e} ${cd.name}: ${cd.cost} → ${cd.sell} munten, ${cd.grow} s${cd.regrow?', groeit opnieuw':''}${cd.aura?', buren groeien sneller':''}`);};
     bar.appendChild(b);}
+  // Gouden zaadjes vast achteraan, zodat de andere knoppen niet verspringen.
+  if(S.golden>0){const b=document.createElement('button');b.className='app seed gold'+(S.useGolden?' sel':'');b.innerHTML=`<span class="e">✨</span><span class="p">${S.useGolden?'AAN':'×'+S.golden}</span>`;
+    b.setAttribute('aria-label',`Gouden zaadjes: ${S.golden}. ${S.useGolden?'Staat aan: je volgende gewas levert 3× zoveel op':'Tik om aan te zetten voor je volgende gewas'}`);b.setAttribute('aria-pressed',S.useGolden);
+    b.onclick=()=>{S.useGolden=!S.useGolden;toast(S.useGolden?'✨ Aan: je volgende gewas levert 3× zoveel op':'✨ Uit: gouden zaadjes bewaard');renderSeeds(true);};bar.appendChild(b);}
   requestAnimationFrame(updateFade);}
-function updateFade(){const b=$('#seedbar');const over=b.scrollWidth>b.clientWidth+2;
-  b.classList.toggle('fadeL',over&&b.scrollLeft>4);b.classList.toggle('fadeR',over&&b.scrollLeft<b.scrollWidth-b.clientWidth-4);}
-$('#seedbar').addEventListener('scroll',updateFade,{passive:true});window.addEventListener('resize',updateFade);
+function updateFade(){const b=$('#seedbar');const over=b.scrollWidth>b.clientWidth+2;const more=over&&b.scrollLeft<b.scrollWidth-b.clientWidth-4;
+  b.classList.toggle('fadeL',over&&b.scrollLeft>4);b.classList.toggle('fadeR',more);$('#seedMore').hidden=!more;}
+$('#seedbar').addEventListener('scroll',updateFade,{passive:true});$('#seedMore').onclick=()=>$('#seedbar').scrollBy({left:180,behavior:'smooth'});window.addEventListener('resize',updateFade);
 let hudDirty=true,hudT=0;
 function hud(){const b=beauty(),L=S.level,cur=LEVELS[L].at,nx=LEVELS[L+1];
   $('#coins').textContent=fmt(S.coins);$('#lvlName').textContent=LEVELS[L].name;
@@ -880,6 +908,8 @@ $('#grid').addEventListener('click',e=>{const b=e.target.closest('.buy');if(!b||
   if(b.dataset.act==='expand'){expand();return;}
   const d=DEC[b.dataset.id];if(S.coins<d.cost){toast(`Je hebt nog ${d.cost-S.coins} munten nodig voor ${d.name}`);bumpCoins();return;}startPlacing(d.id);});
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{shopTab=b.dataset.tab;renderShop();});
+$('#coinPill').onclick=()=>{const nx=TIERS[S.tier];
+  toast(nx?`🧑‍🌾 ${TIER_NAMES[S.tier]}: nog ${nx-S.harvests} oogsten tot ${TIER_NAMES[S.tier+1]} (meer munten, sneller groeien)`:`🧑‍🌾 ${TIER_NAMES[S.tier]}: de hoogste boerenrang!`);};
 $('#shopBtn').onclick=()=>{initAudio();closeEdit();closeOpts();openShop();};$('#shopClose').onclick=closeShop;$('#scrim').onclick=()=>{closeShop();closeOpts();};
 function buzz(ms){if(S.haptics&&navigator.vibrate)try{navigator.vibrate(ms)}catch(e){}}
 function applyQuality(){renderer.setPixelRatio(S.quality==='low'?1:Math.min(window.devicePixelRatio||1,2));resize();}
@@ -903,6 +933,9 @@ $('#volMusic').addEventListener('input',e=>{initAudio();S.musicVol=e.target.valu
 $('#volSfx').addEventListener('input',e=>{initAudio();S.sfxVol=e.target.value/100;applyAudio();});
 $('#volSfx').addEventListener('change',()=>{sfx.harvest(1);save();});$('#volMusic').addEventListener('change',save);
 $('#optBtn').onclick=()=>{initAudio();openOpts();};$('#optClose').onclick=closeOpts;
+$('#zIn').onclick=()=>{viewH=clamp(viewH*.8,6,40);userZoomed=true;updateCam();};
+$('#zOut').onclick=()=>{viewH=clamp(viewH*1.25,6,40);userZoomed=true;updateCam();};
+$('#zAll').onclick=()=>{target.set(0,0,-.5);viewH=clamp(fitView(true),6,40);userZoomed=true;updateCam();};
 $('#camReset').onclick=()=>{target.set(0,0,-.5);userZoomed=false;fitCamera(true);closeOpts();};$('#placeDone').onclick=stopPlacing;
 function setFarmer(f){S.farmerPicked=true;if(f===S.farmer)return;S.farmer=f;island.remove(farmer);farmer=makeFarmer(f);farmer.position.copy(fpos);island.add(farmer);
   burst(fpos.clone().setY(.4),'#ffffff',14,1.6);burst(fpos.clone().setY(.4),'#ffe27a',6,1.8);sfx.tonic();save();}
@@ -930,17 +963,31 @@ canvas.addEventListener('pointerup',endPtr);canvas.addEventListener('pointercanc
 canvas.addEventListener('wheel',e=>{e.preventDefault();viewH=clamp(viewH*(1+Math.sign(e.deltaY)*.1),6,40);userZoomed=true;updateCam();},{passive:false});
 function pan(dx,dy){const wpp=viewH/innerHeight;const R=new THREE.Vector3(1,0,-1).normalize(),U=new THREE.Vector3(-1,0,-1).normalize();
   target.addScaledVector(R,-dx*wpp).addScaledVector(U,dy*wpp*1.732);const l=S.h+2;target.x=clamp(target.x,-l,l);target.z=clamp(target.z,-l,l);updateCam();}
+// De tegel op de grond onder de vinger (los van wat erboven staat, zoals het huis of een boom).
+const groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),gp=new THREE.Vector3();
+function groundTile(){return ray.ray.intersectPlane(groundPlane,gp)?T.get(key(Math.floor(gp.x),Math.floor(gp.z))):null;}
+// Tik je op iets hoogs (huis, boom, versiering) terwijl de grond eronder een akker is, of je bent aan het
+// plaatsen/spitten, dan telt de grond: zo kun je akkers achter het huis gewoon gebruiken.
+function groundFirst(t){const g=groundTile();return g&&g!==t&&g.type!=='house'&&g.group.position.y>=-.05&&(g.type==='soil'||placing||tilling||moving)?g:null;}
 function tap(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,cam);
   const sh=ray.intersectObjects(spots.map(s=>s.userData.hit),false);if(sh.length){catchFish(sh[0].object.userData.spot);return;}
   const dh=ray.intersectObject(dock,true);
   const hits=ray.intersectObject(island,true);
-  for(const h of hits){let o=h.object;while(o&&o!==island){if(o.userData&&o.userData.key){onTileTap(T.get(o.userData.key));return;}if(o===dock){openShop();return;}if(o===house){toast('Huisje, welkom thuis 🏡');return;}o=o.parent;}}
+  for(const h of hits){let o=h.object;while(o&&o!==island){
+    if(o.userData&&o.userData.key){const t=T.get(o.userData.key);const g=(t.decor||t.type==='house')&&groundFirst(t);onTileTap(g||t);return;}
+    if(o===dock){openShop();return;}
+    if(o===house){const g=groundFirst(null);if(g){onTileTap(g);return;}toast('Huisje, welkom thuis 🏡');return;}
+    o=o.parent;}}
   if(dh.length){openShop();}}
 
 /* ---------------- CAMERA ---------------- */
 let userZoomed=false;
-function fitCamera(force){const a=innerWidth/innerHeight;const need=(2*S.h*1.414+1)/a;const vh=Math.max(9,need);
-  if(force||!userZoomed)viewH=clamp(vh,6,40);updateCam();}
+// Zoveel beeld dat het hele eiland past, maar op een smal scherm niet zo ver uit dat akkers te klein
+// worden om aan te tikken (minimaal ~36 px per tegel). Met 🏝️ zie je toch het hele eiland.
+const MIN_TILE_PX=36;
+function fitView(all){const a=innerWidth/innerHeight;const need=Math.max(9,(2*S.h*1.414+1)/a);return all?need:Math.min(need,Math.max(9,innerHeight*.83/MIN_TILE_PX));}
+function fitCamera(force){if(force||!userZoomed)viewH=clamp(fitView(false),6,40);updateCam();
+  if(!S._zoomTip&&fitView(true)>fitView(false)+.5&&matchMedia('(pointer:coarse)').matches){S._zoomTip=true;setTimeout(()=>toast('Tip: knijp met twee vingers om te zoomen, of tik op 🏝️ voor het hele eiland'),900);}}
 function updateCam(){const a=innerWidth/innerHeight;cam.left=-viewH*a/2;cam.right=viewH*a/2;cam.top=viewH/2;cam.bottom=-viewH/2;
   cam.position.copy(target).add(camOff);cam.lookAt(target);cam.updateProjectionMatrix();}
 function resize(){renderer.setSize(innerWidth,innerHeight,false);fitCamera(false);}
@@ -976,7 +1023,7 @@ function frame(now){const dt=Math.min(.1,(now-last)/1000);last=now;clock+=dt;
   grassMat.color.lerp(grassTarget,dt*.8);cSeaDay.lerp(seaTarget,dt*.8);if(!frame.init){cSeaDay.copy(seaTarget);grassMat.color.copy(grassTarget);frame.init=1;}
   tmpC.copy(cSeaDay).lerp(cNight,night*.75).lerp(cSunset,dusk*.22);seaMat.color.copy(tmpC);
   scene.background.copy(tmpC).multiplyScalar(.86);
-  hemi.intensity=.4+.28*day;hemi.color.set('#fff6e0').lerp(cNight,night*.5);sun.intensity=.1+.45*day;sun.color.set('#fff1d6').lerp(cSunset,dusk*.6);amb.intensity=.1+.2*night;
+  hemi.intensity=.56+.12*day;hemi.color.set('#fff6e0').lerp(cNight,night*.5);sun.intensity=.2+.35*day;sun.color.set('#fff1d6').lerp(cSunset,dusk*.6);amb.intensity=.12+.3*night;
   amb.color.set(night>.5?'#8fa8ff':'#ffffff');
   for(const m of glowMats)m.emissiveIntensity=.25+.9*night;winMat.emissiveIntensity=night*.85;winMat.color.set(night>.5?'#ffe2a0':'#9fd3e0');
   for(const s of glowSprites)if(!s.userData.always){const u=s.userData;const f=u.flick?.78+.22*Math.sin(clock*13+s.id)*Math.sin(clock*7.3+s.id*2):.9+.1*Math.sin(clock*3+s.id);s.material.opacity=night*(u.k||.85)*f;}
