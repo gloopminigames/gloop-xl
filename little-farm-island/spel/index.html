@@ -75,10 +75,11 @@ canvas#c{-webkit-touch-callout:none}
 #hint{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 118px);transform:translateX(-50%) translateY(10px);opacity:0;
   background:var(--cream);border-radius:26px;padding:12px 24px;font-size:18px;font-weight:700;box-shadow:var(--shadow);pointer-events:none;transition:opacity .35s, transform .35s;z-index:4;width:max-content;max-width:calc(100vw - 32px);text-align:center;line-height:1.25}
 #hint.on{opacity:1;transform:translateX(-50%) translateY(0)}
-#toasts{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 186px);display:flex;flex-direction:column;gap:6px;align-items:flex-start;pointer-events:none;z-index:7;max-width:calc(100vw - 24px)}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 170px);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;z-index:7;width:max-content;max-width:min(520px,calc(100vw - 130px))}
+.toast{text-align:center}
 .toast{background:rgba(253,246,232,.96);border-radius:16px;padding:8px 14px;font-size:15px;font-weight:600;box-shadow:var(--shadow);animation:tin .25s ease-out, tout .4s ease-in 2.6s forwards}
-@media (max-width:600px){.toast{font-size:13px;padding:6px 11px;border-radius:13px}#toasts{max-width:min(320px,calc(100vw - 24px))}}
-@keyframes tin{from{opacity:0;transform:translateY(8px) scale(.96)}}
+@media (max-width:600px){.toast{font-size:13px;padding:6px 11px;border-radius:13px}}
+@keyframes tin{from{opacity:0;transform:translateY(-8px) scale(.96)}}
 @keyframes tout{to{opacity:0;transform:translateY(-6px)}}
 #floaties{position:fixed;inset:0;pointer-events:none;z-index:4;overflow:hidden}
 .floaty{position:absolute;transform:translate(-50%,-50%);font-weight:700;font-size:18px;color:#fff;text-shadow:0 2px 0 rgba(91,59,34,.55),0 0 8px rgba(0,0,0,.2);animation:fly 1.2s ease-out forwards;white-space:nowrap}
@@ -134,7 +135,6 @@ body.placing #seedpick{display:none}
 #seedrow{overflow-x:auto;scrollbar-width:none;touch-action:pan-x}
 #seedrow::-webkit-scrollbar{display:none}
 body.seeding #hint{bottom:calc(env(safe-area-inset-bottom,0px) + 196px)}
-body.seeding #toasts{bottom:calc(env(safe-area-inset-bottom,0px) + 264px)}
 .tabs[hidden]{display:none}
 .card .free{font-size:13px;font-weight:700;color:#4f8a5a}
 /* Telefoon: winkel, schuur en de 4 gratis gereedschappen passen naast elkaar */
@@ -741,6 +741,7 @@ function tillArea(c){let n=0;
 // Gereedschap vastpakken (of wegleggen met null). De balk bovenin laat zien wat je vasthebt.
 function setTool(id){closeEdit();placing=null;moving=null;tool=id;endPlace();renderSeeds();
   if(S.hint<2||(S.hint===2&&ripeCrops().length))showHint(hintFor(S.hint));
+  else if(id&&!TOOL[id].now&&!S._swipeTip&&S.hint>=3){S._swipeTip=true;showHint('Tip: veeg over je akkers om ze in één keer te doen',4500);}
   if(id){tone(540,.06,'triangle',.06);tone(810,.08,'triangle',.05,.05);}}
 function toolPill(){document.body.classList.toggle('seeding',tool==='seed'&&!placing&&!moving);if(placing||moving)return;const p=$('#place');
   if(!tool){p.classList.remove('on');return;}const td=TOOL[tool];
@@ -1082,13 +1083,35 @@ let resetArm=0;$('#tgReset').onclick=()=>{const b=$('#tgReset');if(Date.now()-re
 /* ---------------- BEDIENING (aanraken en muis) ---------------- */
 const ray=new THREE.Raycaster();const ndc=new THREE.Vector2();
 const ptrs=new Map();let down=null,moved=false,pinch=null;
+// Vegen: heb je gereedschap vast en begin je op een tegel waar het werkt (bijv. de zaadzak op een akker),
+// dan werkt slepen als 'kwasten' over de tegels in plaats van het beeld te verschuiven. Verschuiven kan dan
+// met twee vingers, of door op gras/zee te beginnen.
+let paint=null;
+function tileAt(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,cam);const t=groundTile();return t&&raised(t)&&t.type!=='house'?t:null;}
+function paintStart(t){if(!t||placing||moving)return false;
+  if(tool==='seed'||tool==='can'||tool==='sickle')return t.type==='soil'&&!t.decor;
+  if(tool==='rake'||tool==='wrake')return t.type==='grass'&&!t.decor;return false;}
+function paintTile(t){if(!t||paint.done.has(t.key))return;paint.done.add(t.key);
+  if(tool==='seed'){if(t.type==='soil'&&!t.crop&&!t.decor){sendFarmer(t);if(!plant(t))paint.stop=true;}}
+  else if(tool==='can'){if(t.crop&&!isWet(t)&&t.crop.p<CROP[t.crop.id].grow){sendFarmer(t);water(t);}}
+  else if(tool==='sickle'){if(t.crop&&t.crop.p>=CROP[t.crop.id].grow){sendFarmer(t);harvest(t);}}
+  else if(tool==='rake'){if(t.type==='grass'&&!t.decor&&!t.crop){sendFarmer(t);tillTile(t);}}
+  else if(tool==='wrake'){if(t.type==='grass'&&!t.decor&&!t.crop){sendFarmer(t);tillArea(t);}}
+  if(tool!==paint.tool)paint.stop=true;}
+function paintTo(x,y){const dx=x-paint.x,dy=y-paint.y,n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/8));
+  for(let i=1;i<=n&&!paint.stop;i++)paintTile(tileAt(paint.x+dx*i/n,paint.y+dy*i/n));paint.x=x;paint.y=y;}
 canvas.addEventListener('pointerdown',e=>{initAudio();canvas.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(ptrs.size===1){down={x:e.clientX,y:e.clientY};moved=false;lpFired=false;clearTimeout(lpTimer);
+    paint=tool&&paintStart(tileAt(e.clientX,e.clientY))?{tool,x:e.clientX,y:e.clientY,done:new Set(),on:false,stop:false}:null;
     lpTimer=setTimeout(()=>{if(ptrs.size===1&&!moved){lpFired=true;longPress(down.x,down.y);}},460);}
-  else if(ptrs.size===2){clearTimeout(lpTimer);const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),v:viewH};moved=true;}});
+  else if(ptrs.size===2){clearTimeout(lpTimer);paint=null;const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),v:viewH,mx:(a.x+b.x)/2,my:(a.y+b.y)/2};moved=true;}});
 canvas.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return;const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;
-  if(ptrs.size===1){if(Math.hypot(e.clientX-down.x,e.clientY-down.y)>9){moved=true;clearTimeout(lpTimer);}if(moved){pan(dx,dy);if(editing)closeEdit();}}
-  else if(ptrs.size===2&&pinch){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);viewH=clamp(pinch.v*pinch.d/Math.max(d,1),6,40);userZoomed=true;updateCam();}});
+  if(ptrs.size===1){if(Math.hypot(e.clientX-down.x,e.clientY-down.y)>9){moved=true;clearTimeout(lpTimer);}
+    if(moved){if(editing)closeEdit();
+      if(paint){if(!paint.on){paint.on=true;paint.x=down.x;paint.y=down.y;paintTile(tileAt(down.x,down.y));}if(!paint.stop)paintTo(e.clientX,e.clientY);}
+      else pan(dx,dy);}}
+  else if(ptrs.size===2&&pinch){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);viewH=clamp(pinch.v*pinch.d/Math.max(d,1),6,40);userZoomed=true;
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;pan(mx-pinch.mx,my-pinch.my);pinch.mx=mx;pinch.my=my;updateCam();}});
 let lpTimer=0,lpFired=false;
 canvas.addEventListener('contextmenu',e=>{e.preventDefault();if(lpFired)return;lpFired=true;clearTimeout(lpTimer);longPress(e.clientX,e.clientY);});
 function pickTile(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,cam);
@@ -1096,7 +1119,7 @@ function pickTile(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFro
 function longPress(x,y){const t=pickTile(x,y);if(!t||t.type==='house'||t.group.position.y<-.05)return;
   openEdit(t);}
 const endPtr=e=>{clearTimeout(lpTimer);if(!ptrs.has(e.pointerId))return;if(ptrs.size===1&&!moved&&!lpFired&&e.type==='pointerup'){if(editing)closeEdit();else tap(e.clientX,e.clientY);}ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;};
-canvas.addEventListener('pointerup',endPtr);canvas.addEventListener('pointercancel',endPtr);
+canvas.addEventListener('pointerup',e=>{if(paint&&paint.on&&ptrs.size===1){if(paint.done.size>1)save();}endPtr(e);if(!ptrs.size)paint=null;});canvas.addEventListener('pointercancel',endPtr);
 canvas.addEventListener('wheel',e=>{e.preventDefault();viewH=clamp(viewH*(1+Math.sign(e.deltaY)*.1),6,40);userZoomed=true;updateCam();},{passive:false});
 function pan(dx,dy){const wpp=viewH/innerHeight;const R=new THREE.Vector3(1,0,-1).normalize(),U=new THREE.Vector3(-1,0,-1).normalize();
   target.addScaledVector(R,-dx*wpp).addScaledVector(U,dy*wpp*1.732);const l=S.h+2;target.x=clamp(target.x,-l,l);target.z=clamp(target.z,-l,l);updateCam();}
