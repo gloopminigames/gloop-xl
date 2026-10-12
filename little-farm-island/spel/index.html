@@ -120,7 +120,28 @@ canvas#c{-webkit-touch-callout:none}
 .seed.locked .lk{position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:var(--cream);font-size:11px;display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .seed.gold{background:linear-gradient(160deg,#fff2c0,#ffd05a)}
 body.placing #seedbar{opacity:.45;pointer-events:none}
-.seed.till.sel{background:linear-gradient(170deg,#fffaf0,#ffe6ad)}
+.seed.tool.sel{background:linear-gradient(170deg,#fffaf0,#ffe6ad)}
+.seed.paid{background:linear-gradient(170deg,#fff6e6,#f3d6a4)}
+.seed.nudge{animation:nudge 1.4s ease-in-out infinite}
+.seed .badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#4fa45a;color:#fff;font-size:11.5px;font-weight:800;display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.seed .badge:empty{display:none}
+#shedBtn{font-size:30px;background:linear-gradient(165deg,#f6ead8,#ddb98f)}
+#shedBtn.nudge{animation:nudge 1.4s ease-in-out infinite}
+/* Zaadjes: alleen zichtbaar als je de zaadzak vasthoudt */
+#seedpick{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 98px);display:none;justify-content:center;padding:0 10px;z-index:5;pointer-events:none}
+body.seeding #seedpick{display:flex;animation:tin .2s ease-out}
+body.placing #seedpick{display:none}
+#seedrow{overflow-x:auto;scrollbar-width:none;touch-action:pan-x}
+#seedrow::-webkit-scrollbar{display:none}
+body.seeding #hint{bottom:calc(env(safe-area-inset-bottom,0px) + 196px)}
+body.seeding #toasts{bottom:calc(env(safe-area-inset-bottom,0px) + 264px)}
+.tabs[hidden]{display:none}
+.card .free{font-size:13px;font-weight:700;color:#4f8a5a}
+/* Telefoon: winkel, schuur en de 4 gratis gereedschappen passen naast elkaar */
+@media (max-width:430px){.app{width:50px;height:50px;border-radius:14px}.seed .e{font-size:23px}.seed .p{font-size:11.5px}#shopBtn,#shedBtn{font-size:26px}
+  .glass{gap:6px}#dock .divider{display:none}#dock{padding-left:8px;padding-right:8px}
+  #seedpick{bottom:calc(env(safe-area-inset-bottom,0px) + 88px)}#place .pt{display:none}}
+@media (max-width:370px){.app{width:46px;height:46px}.seed .e{font-size:21px}#shopBtn,#shedBtn{font-size:24px}#seedpick{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}}
 
 /* Winkel en instellingen */
 #scrim{position:fixed;inset:0;background:rgba(10,40,45,.28);opacity:0;pointer-events:none;transition:opacity .25s;z-index:10}
@@ -210,15 +231,17 @@ body.placing #seedbar{opacity:.45;pointer-events:none}
 
 <div id="dock"><div class="glass">
   <button id="shopBtn" class="app" aria-label="Open de Strandwinkel">⛵</button>
+  <button id="shedBtn" class="app" aria-label="Open de Schuur (gereedschap)">🛖</button>
   <div class="divider"></div>
-  <div id="seedbar" role="toolbar" aria-label="Zaadjes"></div>
-  <button id="seedMore" aria-label="Meer zaadjes" hidden>›</button>
+  <div id="seedbar" role="toolbar" aria-label="Gereedschap"></div>
+  <button id="seedMore" aria-label="Meer gereedschap" hidden>›</button>
 </div></div>
+<div id="seedpick"><div class="glass" id="seedrow" role="toolbar" aria-label="Zaadjes"></div></div>
 
 <div id="scrim"></div>
 <div id="sheet" role="dialog" aria-label="Strandwinkel">
-  <div class="sh-head"><h2>Strandwinkel</h2><button class="x" id="shopClose" aria-label="Winkel sluiten">✕</button></div>
-  <div class="tabs"><button class="tab on" data-tab="decor">Versiering</button><button class="tab" data-tab="farm">Boerderij</button><button class="tab" data-tab="island">Eiland</button></div>
+  <div class="sh-head"><h2 id="sheetTitle">Strandwinkel</h2><button class="x" id="shopClose" aria-label="Winkel sluiten">✕</button></div>
+  <div class="tabs" id="tabs"><button class="tab on" data-tab="decor">Versiering</button><button class="tab" data-tab="farm">Boerderij</button><button class="tab" data-tab="island">Eiland</button></div>
   <div id="grid"></div>
 </div>
 
@@ -303,6 +326,19 @@ const DECOR=[
   {id:'balloon',name:'Luchtballon',e:'🎈',desc:'Zweeft boven je eiland, zichtbaar van ver',cost:5000,beauty:500,lvl:4,tab:'island',max:1},
 ];
 const DEC=Object.fromEntries(DECOR.map(d=>[d.id,d]));
+// Gereedschap. Gratis: hark, zaadzak, gieter en handzeis. De rest koop je in de Schuur.
+// now:true = werkt meteen op het hele eiland als je erop tikt; anders pak je het vast en tik je op tegels.
+const TOOLS=[
+  {id:'rake',  e:'⛏️',lbl:'Hark',  name:'Hark',       free:true,desc:'Maakt van gras een akker',txt:'tik op gras om akker te maken'},
+  {id:'seed',  e:'🌱',lbl:'Zaaien',name:'Zaadzak',    free:true,desc:'Plant een zaadje op een lege akker',txt:'tik op een lege akker'},
+  {id:'can',   e:'💧',lbl:'Gieter',name:'Gieter',     free:true,desc:'Water: een plantje groeit 25% sneller',txt:'tik op een plantje'},
+  {id:'sickle',e:'🌾',lbl:'Zeis',  name:'Handzeis',   free:true,desc:'Oogst één rijp gewas',txt:'tik op een rijp gewas'},
+  {id:'cart',  e:'🚿',lbl:'Sproei',name:'Sproeikar',  cost:300, lvl:1,now:true,desc:'Geeft al je plantjes in één tik water'},
+  {id:'wrake', e:'⛏️',lbl:'3×3',   name:'Brede hark', cost:450, lvl:2,desc:'Spit 9 tegels gras in één tik',txt:'tik op gras, 3×3 wordt akker'},
+  {id:'scythe',e:'🌾',lbl:'Oogst', name:'Grote zeis', cost:600, lvl:2,now:true,desc:'Oogst alles wat rijp is in één tik'},
+  {id:'seeder',e:'🚜',lbl:'Zaai',  name:'Zaaimachine',cost:1500,lvl:3,now:true,desc:'Zaait alle lege akkers in met je gekozen zaadje'},
+];
+const TOOL=Object.fromEntries(TOOLS.map(x=>[x.id,x]));
 const EXPAND_COST=[150,400,900,1800];
 const TIERS=[150,400,1000,2500];
 const TIER_NAMES=['Zaailing','Groene vingers','Ervaren boer','Oogstheld','Eilandlegende'];
@@ -319,11 +355,12 @@ const N4=[[0,-1],[-1,0],[1,0],[0,1]];
 
 /* ---------------- STATE ---------------- */
 function fresh(){return{v:1,coins:15,harvests:0,bestCombo:0,fish:{},fishTotal:0,golden:0,useGolden:false,tonic:0,
-  time:8,h:3,expansions:0,rod:false,level:0,farmer:'man',musicVol:.7,sfxVol:.9,amb:true,haptics:true,quality:'high',hints:true,dayMode:'cycle',sel:'strawberry',hint:0,music:true,sound:true,tiles:null,last:Date.now(),tier:0,shopHint:false}}
+  time:8,h:3,expansions:0,rod:false,level:0,farmer:'man',musicVol:.7,sfxVol:.9,amb:true,haptics:true,quality:'high',hints:true,dayMode:'cycle',sel:'strawberry',hint:0,music:true,sound:true,tiles:null,last:Date.now(),tier:0,shopHint:false,shedHint:false,tools:{}}}
 let S;
 try{S=JSON.parse(localStorage.getItem(SAVE_KEY)||localStorage.getItem(OLD_KEY)||'null')}catch(e){S=null}
 if(!S||S.v!==1)S=fresh();
 S=Object.assign(fresh(),S);
+if(!S.tools||typeof S.tools!=='object')S.tools={};
 
 /* ---------------- THREE SETUP ---------------- */
 const canvas=$('#c');
@@ -392,6 +429,19 @@ function makeHouse(){const g=new THREE.Group();
   B(g,.24,.45,.24,'#7a5a44',.45,1.25,-.35); B(g,.3,.06,.3,'#5d4333',.45,1.7,-.35);
   B(g,.5,.12,.3,'#d77a7a',.55,.12,.95);
   blob(g,2.8);pool(g,1.5,'#ffc86b',.4,false,0,1.3);
+  return g;}
+function makeShed(){const g=new THREE.Group();
+  for(const[x,z]of[[-.42,-.38],[.42,-.38],[-.42,.38],[.42,.38]])B(g,.1,.8,.1,'#7a5536',x,-.72,z);
+  B(g,1.05,.07,.95,'#b88a5a',0,0,0);
+  B(g,.86,.66,.76,'#a5704a',0,.07,0);
+  for(let i=0;i<4;i++)B(g,.87,.025,.77,'#8a5a36',0,.17+i*.15,0);
+  B(g,.34,.5,.03,'#6b4a33',.12,.07,.39);B(g,.04,.04,.03,'#e8c150',.24,.3,.42);
+  B(g,.03,.5,.34,'#6b4a33',.44,.07,-.12);
+  for(let i=0;i<4;i++)B(g,1.08-i*.26,.11,1-i*.22,i%2?'#4f7f5c':'#5f8f6a',0,.73+i*.11,0);
+  // hark en zeis tegen de muur
+  B(g,.03,.6,.03,'#c79a68',.45,.1,.22);B(g,.03,.03,.2,'#8a8a8a',.45,.68,.22);
+  B(g,.03,.5,.03,'#c79a68',-.2,.1,.42);B(g,.16,.03,.03,'#bfc7cc',-.13,.58,.42);
+  blob(g,1.4);pool(g,1,'#ffc86b',.3,false,.1,.6);
   return g;}
 function makeDock(){const g=new THREE.Group();
   for(let i=0;i<5;i++)B(g,1.25,.07,.26,i%2?'#b88a5a':'#c79a68',0,-.12,.18+i*.28);
@@ -586,6 +636,7 @@ function rebuildTuft(t){
 const house=makeHouse();house.position.set(0,0,-2);island.add(house);
 const smokeMat=new THREE.MeshLambertMaterial({color:'#efeae2',transparent:true,opacity:.8,flatShading:true});const smoke=[];for(let i=0;i<5;i++){const m=new THREE.Mesh(geoBox,smokeMat);m.userData.ph=i/5;scene.add(m);smoke.push(m);}
 const dock=makeDock();island.add(dock);
+const shed=makeShed();island.add(shed);
 let farmer=makeFarmer(S.farmer);island.add(farmer);
 const fpos=new THREE.Vector3(.8,0,-.6),ftarget=fpos.clone();let fAct=0,fPending=false;farmer.position.copy(fpos);
 
@@ -596,7 +647,7 @@ function buildWorld(){
     for(const x of[-1,0,1]){const t=T.get(key(x,0));t.type='soil';refreshTile(t);}
     for(const[x,z]of[[-3,-2],[2,-3]]){const t=T.get(key(x,z));t.decor='tree';refreshTile(t);}}
   recountDecor();placeDock();}
-function placeDock(){dock.position.set(-1.5,0,S.h);
+function placeDock(){dock.position.set(-1.5,0,S.h);shed.position.set(S.h+.58,0,-S.h+1.1);
   foam.scale.set(2*S.h+.5,.04,2*S.h+.5);foam.position.set(0,-.35,0);}
 
 /* ---------------- SPELREGELS ---------------- */
@@ -617,30 +668,48 @@ function onTileTap(t){
   sendFarmer(t);
   if(moving){moveTo(t);return;}
   if(placing){place(t);return;}
-  if(t.crop){const cd=CROP[t.crop.id];
-    if(t.crop.p>=cd.grow){harvest(t);return;}
-    if(!isWet(t)){t.crop.w=1;refreshTile(t);popTile(t);burst(tileWorld(t,.3),'#8fd6ff',10,1.2);sfx.water();
-      floaty(tileWorld(t,.7),'💧 +25%','aqua');if(S.hint===1)setHintStep(2);return;}
-    const left=Math.ceil((cd.grow-t.crop.p)/growMult(t));toast(`${cd.e} ${cd.name} is rijp over ${fmtTime(left)}`);popTile(t);return;}
   if(t.decor){toast(`${DEC[t.decor].e} ${DEC[t.decor].name}. Houd ingedrukt om te draaien, verplaatsen of weg te halen`);popTile(t);return;}
-  if(t.type==='soil'){plant(t);return;}
-  if(tilling){tillTile(t);return;}
+  if(t.crop){const cd=CROP[t.crop.id];
+    if(t.crop.p>=cd.grow){if(tool==='sickle'){harvest(t);return;}needTool('sickle',`${cd.e} ${cd.name} is rijp! Pak de 🌾 zeis om te oogsten`);popTile(t);return;}
+    if(!isWet(t)&&tool==='can'){water(t);return;}
+    if(tool==='can'){toast(`${cd.e} ${cd.name} heeft al water`);popTile(t);return;}
+    const left=Math.ceil((cd.grow-t.crop.p)/growMult(t));
+    if(!isWet(t)&&S.hint===1)needTool('can','Pak de 💧 gieter om water te geven');
+    else toast(`${cd.e} ${cd.name} is rijp over ${fmtTime(left)}`+(isWet(t)?'':'. Water met de 💧 gieter helpt'));
+    popTile(t);return;}
+  if(t.type==='soil'){
+    if(tool==='seed'){plant(t);return;}
+    if(tool==='wrake'){tillArea(t);return;}
+    needTool('seed','Lege akker. Pak de 🌱 zaadzak om te planten');popTile(t,.2);return;}
+  if(tool==='rake'){tillTile(t);return;}
+  if(tool==='wrake'){tillArea(t);return;}
   sendFarmer(t,true);
-  if(!walkTipShown&&S.hint>=3){walkTipShown=true;toast('Nieuw stukje akker? Kies ⛏️ Spitten in de zaadbalk');}
+  if(tool==='seed')toast('Zaaien kan alleen op een akker. Maak er een met de ⛏️ hark');
+  else if(!walkTipShown&&S.hint>=3){walkTipShown=true;toast('Nieuw stukje akker? Pak de ⛏️ hark');}
 }
+// Verkeerd gereedschap? Zeg welk je nodig hebt en laat die knop even wiebelen.
+let nudgeTool=null,nudgeUntil=0;
+function needTool(id,msg){toast(msg);nudgeTool=id;nudgeUntil=performance.now()+3000;hudDirty=true;}
+function water(t,quiet){t.crop.w=1;refreshTile(t);popTile(t);burst(tileWorld(t,.3),'#8fd6ff',10,1.2);if(!quiet){sfx.water();floaty(tileWorld(t,.7),'💧 +25%','aqua');}
+  if(S.hint===1)setHintStep(2);}
 function refreshNeighbors(t){for(const[dx,dz]of N8){const n=T.get(key(t.x+dx,t.z+dz));if(n&&n.type==='soil')refreshTile(n);}}
 
-function plant(t){const cd=CROP[S.sel];
-  if(!cropUnlocked(cd)){toast(`${cd.name} is nog op slot`);return;}
+function plant(t,quiet){const cd=CROP[S.sel];
+  if(!cropUnlocked(cd)){toast(`${cd.name} is nog op slot`);return false;}
   const useG=S.useGolden&&S.golden>0;
-  if(!useG&&S.coins<cd.cost){toast(`${cd.name} kost ${cd.cost} munten. Oogst eerst nog wat`);bumpCoins();return;}
+  if(!useG&&S.coins<cd.cost){toast(`${cd.name} kost ${cd.cost} munten. Oogst eerst nog wat`);bumpCoins();return false;}
   if(useG){S.golden--;if(!S.golden)S.useGolden=false;toast('✨ Gouden zaadje geplant, dit levert 3× zoveel op');}
-  else{S.coins-=cd.cost;floaty(tileWorld(t,.6),`-${cd.cost}`,'');}
+  else{S.coins-=cd.cost;if(!quiet)floaty(tileWorld(t,.6),`-${cd.cost}`,'');}
   t.crop={id:cd.id,p:0,g:useG?1:0,w:0,r:0};
-  refreshTile(t);popTile(t);burst(tileWorld(t,.1),'#6aa84a',8,1);sfx.plant();
+  refreshTile(t);popTile(t);burst(tileWorld(t,.1),'#6aa84a',8,1);if(!quiet)sfx.plant();
   if(S.hint===0)setHintStep(1);
-  renderSeeds(true);save();}
-
+  hudDirty=true;
+  if(!quiet){if(tool==='seed'&&!emptySoil().length){if(!plant.told){plant.told=1;toast('Alle akkers zijn ingezaaid, de zaadzak is weggelegd 🌱');}setTool(null);}else renderSeeds();save();}
+  return true;}
+const raised=t=>t.group.position.y>=-.05;
+const emptySoil=()=>[...T.values()].filter(t=>t.type==='soil'&&!t.crop&&!t.decor&&raised(t));
+const ripeCrops=()=>[...T.values()].filter(t=>t.crop&&t.crop.p>=CROP[t.crop.id].grow&&raised(t));
+const dryCrops=()=>[...T.values()].filter(t=>t.crop&&!isWet(t)&&t.crop.p<CROP[t.crop.id].grow&&raised(t));
 function harvest(t){const c=t.crop,cd=CROP[c.id];
   let v=cd.sell*(1+.1*S.tier);if(c.g)v*=3;if(nearDecor(t,'beehive',2))v*=1.5;
   const now=performance.now();combo=now-lastHarvest<2600?combo+1:1;lastHarvest=now;S.bestCombo=Math.max(S.bestCombo,combo);
@@ -650,7 +719,7 @@ function harvest(t){const c=t.crop,cd=CROP[c.id];
   burst(tileWorld(t,.4),cd.col,16,2);burst(tileWorld(t,.4),'#ffe27a',6,2.4);
   sfx.harvest(combo);buzz(8);
   const ch=.05*((decorCount.scarecrow||0)?2:1);
-  if(Math.random()<ch){S.golden++;toast('✨ Gouden zaadje! Zet ✨ in de zaadbalk aan: je volgende gewas levert 3× zoveel op');sfx.tonic();}
+  if(Math.random()<ch){S.golden++;toast('✨ Gouden zaadje! Zet ✨ aan bij de 🌱 zaadzak: je volgende gewas levert 3× zoveel op');sfx.tonic();}
   if(cd.regrow){c.p=0;c.r=1;c.w=0;}else t.crop=null;
   refreshTile(t);popTile(t);
   if(S.harvests===3)toast('🥕 Wortels zijn vrijgespeeld!');
@@ -658,16 +727,40 @@ function harvest(t){const c=t.crop,cd=CROP[c.id];
   if(S.hint===2||S.hint===1)setHintStep(3);
   const tier=TIERS.filter(x=>S.harvests>=x).length;
   if(tier>S.tier){S.tier=tier;showBanner('Nieuwe boerenrang 🧑‍🌾',TIER_NAMES[tier],'Al je gewassen leveren nu 10% meer op en groeien 5% sneller');sfx.level();}
-  checkLevel();renderSeeds(true);save();}
+  checkLevel();renderSeeds();save();}
 
 let placing=null;
-let tilling=false,walkTipShown=false;
-function tillTile(t){t.type='soil';refreshTile(t);popTile(t);burst(tileWorld(t,.1),'#8a6242',12,1.4);sfx.till();
-  if(!S._tilledOnce){S._tilledOnce=true;toast('Nieuw stukje akker 🌱');}save();}
-function startTilling(){stopPlacing();closeEdit();tilling=true;$('#placeTxt').textContent='⛏️ Tik op gras om te spitten';$('#placeDone').textContent='Klaar';
-  $('#place').classList.add('on');renderSeeds();}
+let tool=null,walkTipShown=false;
+function tillTile(t,quiet){t.type='soil';refreshTile(t);popTile(t);burst(tileWorld(t,.1),'#8a6242',12,1.4);if(!quiet)sfx.till();
+  if(!S._tilledOnce){S._tilledOnce=true;toast('Nieuw stukje akker 🌱 Pak de zaadzak om te planten');}if(!quiet)save();}
+function tillArea(c){let n=0;
+  for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const t=T.get(key(c.x+dx,c.z+dz));
+    if(t&&t.type==='grass'&&!t.decor&&!t.crop&&raised(t)){tillTile(t,true);n++;}}
+  if(!n){toast('Hier is geen vrij gras om te spitten');return;}
+  sfx.till();save();}
+// Gereedschap vastpakken (of wegleggen met null). De balk bovenin laat zien wat je vasthebt.
+function setTool(id){closeEdit();placing=null;moving=null;tool=id;endPlace();renderSeeds();
+  if(S.hint<2||(S.hint===2&&ripeCrops().length))showHint(hintFor(S.hint));
+  if(id){tone(540,.06,'triangle',.06);tone(810,.08,'triangle',.05,.05);}}
+function toolPill(){document.body.classList.toggle('seeding',tool==='seed'&&!placing&&!moving);if(placing||moving)return;const p=$('#place');
+  if(!tool){p.classList.remove('on');return;}const td=TOOL[tool];
+  $('#placeTxt').innerHTML=`${tool==='seed'?CROP[S.sel].e:td.e} ${td.name}<span class="pt">: ${td.txt}</span>`;$('#placeDone').innerHTML='✕<span class="pt"> Wegleggen</span>';p.classList.add('on');}
+// Gereedschap uit de schuur dat meteen op het hele eiland werkt.
+let toolBusy=false;
+function useNow(id){if(toolBusy)return;initAudio();closeEdit();const td=TOOL[id];
+  if(id==='cart'){const list=dryCrops();if(!list.length){toast('🚿 Alle plantjes hebben al water');return;}
+    toolBusy=true;sfx.water();list.forEach((t,i)=>setTimeout(()=>{if(t.crop)water(t,true);if(i===list.length-1){toolBusy=false;save();}},i*40));
+    toast(`🚿 ${list.length} ${list.length>1?'plantjes':'plantje'} water gegeven`);return;}
+  if(id==='scythe'){const list=ripeCrops().sort((a,b)=>(a.x+a.z)-(b.x+b.z));if(!list.length){toast('🌾 Er is nog niets rijp');return;}
+    toolBusy=true;list.forEach((t,i)=>setTimeout(()=>{if(t.crop&&t.crop.p>=CROP[t.crop.id].grow)harvest(t);if(i===list.length-1)toolBusy=false;},i*90));return;}
+  if(id==='seeder'){const cd=CROP[S.sel];const list=emptySoil();if(!list.length){toast('🚜 Er is geen lege akker');return;}
+    let n=0,spent=0;for(const t of list){const c0=S.coins;if(!(S.useGolden&&S.golden>0)&&S.coins<cd.cost)break;if(!plant(t,true))break;n++;spent+=c0-S.coins;}
+    if(!n){toast(`${cd.e} ${cd.name} kost ${cd.cost} munten. Oogst eerst nog wat`);bumpCoins();return;}
+    sfx.plant();bumpCoins();toast(`🚜 ${n} ${n>1?'akkers':'akker'} ingezaaid met ${cd.e} (${spent} munten)`+(n<list.length?'. Munten op':''));
+    renderSeeds();save();return;}
+}
 let placedN=0;
-function startPlacing(id){placing=id;placedN=0;tilling=false;closeShop();document.body.classList.add('placing');
+function startPlacing(id){placing=id;placedN=0;tool=null;closeShop();renderSeeds();document.body.classList.add('placing');document.body.classList.remove('seeding');
   $('#placeTxt').textContent=`Tik op gras om te plaatsen: ${DEC[id].e} ${DEC[id].name} (${DEC[id].cost} per stuk)`;$('#placeDone').textContent='Klaar';$('#place').classList.add('on');}
 /* ---- Bewerken: lang indrukken ---- */
 let editing=null,moving=null;
@@ -675,7 +768,7 @@ const selRing=new THREE.Group();{const sm=new THREE.MeshBasicMaterial({color:'#f
   for(const[w,d,x,z]of[[1,.07,0,-.5],[1,.07,0,.5],[.07,1,-.5,0],[.07,1,.5,0]]){const m=new THREE.Mesh(geoBox,sm);m.scale.set(w,.03,d);m.position.set(x,.03,z);m.renderOrder=5;selRing.add(m);}}
 selRing.visible=false;scene.add(selRing);
 function showSel(t){if(!t){selRing.visible=false;return;}selRing.visible=true;selRing.position.set(t.x+.5,t.group.position.y,t.z+.5);}
-function openEdit(t){editing=t;stopPlacing();showSel(t);popTile(t,.3);sfx.plant();buzz(12);
+function openEdit(t){editing=t;if(placing||moving)endPlace();showSel(t);popTile(t,.3);sfx.plant();buzz(12);
   const el=$('#edit');let html='',title='';
   if(t.decor){const d=DEC[t.decor];title=`${d.e} ${d.name}`;
     html=`<button data-a="turn"><span>↻</span>Draai</button><button data-a="move"><span>✥</span>Verplaats</button><button data-a="remove" class="rm"><span>🗑</span>+${Math.floor(d.cost/2)}</button>`;}
@@ -699,24 +792,27 @@ $('#edit').addEventListener('click',e=>{const b=e.target.closest('button');if(!b
   else if(a==='grass'){t.type='grass';refreshTile(t);popTile(t);burst(tileWorld(t,.1),'#6aa84a',10,1.2);sfx.plant();save();}
   closeEdit();});
 function moveTo(dst){const src=moving;
-  if(dst===src){stopPlacing();return;}
+  if(dst===src){endPlace();return;}
   if(dst.crop||dst.decor||(dst.type!=='grass'&&dst.type!=='soil')){toast('Kies een lege tegel');return;}
   dst.type='grass';dst.decor=src.decor;dst.rot=src.rot;src.decor=null;src.rot=0;
   recountDecor();refreshTile(src);refreshTile(dst);refreshNeighbors(src);refreshNeighbors(dst);critters();popTile(dst,.5);
-  burst(tileWorld(dst,.3),'#fff3c4',10,1.5);sfx.buy();stopPlacing();save();}
-function stopPlacing(){const wasTill=tilling;placing=null;moving=null;tilling=false;showSel(null);if(wasTill)setTimeout(renderSeeds);document.body.classList.remove('placing');$('#place').classList.remove('on');}
+  burst(tileWorld(dst,.3),'#fff3c4',10,1.5);sfx.buy();endPlace();save();}
+// Klaar met plaatsen/verplaatsen (je gereedschap houd je vast).
+function endPlace(){placing=null;moving=null;if(!editing)showSel(null);document.body.classList.remove('placing');$('#place').classList.remove('on');toolPill();}
+// Alles neerleggen: ook het gereedschap.
+function stopPlacing(){const had=tool;tool=null;endPlace();if(had)renderSeeds();}
 function fenceRot(t){
   const same=(dx,dz)=>{const n=T.get(key(t.x+dx,t.z+dz));return n&&n.decor===t.decor;};
   if(same(0,-1)||same(0,1))return 1;return 0;}
 function place(t){const d=DEC[placing];
   if(t.crop||t.decor||(t.type!=='grass'&&t.type!=='soil')){toast('Kies een lege tegel');return;}
-  if(d.max&&(decorCount[d.id]||0)>=d.max){toast(`Je hebt al een ${d.name}`);stopPlacing();return;}
-  if(S.coins<d.cost){toast(`Je hebt nog ${d.cost-S.coins} munten nodig`);stopPlacing();return;}
+  if(d.max&&(decorCount[d.id]||0)>=d.max){toast(`Je hebt al een ${d.name}`);endPlace();return;}
+  if(S.coins<d.cost){toast(`Je hebt nog ${d.cost-S.coins} munten nodig`);endPlace();return;}
   S.coins-=d.cost;t.type='grass';t.decor=d.id;t.rot=fenceRot(t);recountDecor();refreshTile(t);refreshNeighbors(t);popTile(t,.5);
   burst(tileWorld(t,.3),'#fff3c4',14,1.8);sfx.buy();floaty(tileWorld(t,1),`+${d.beauty} schoonheid`,'pink');bumpCoins();
   critters();checkLevel();save();placedN++;
   $('#placeTxt').textContent=`${d.e} ${placedN} geplaatst. Tik op gras voor nog een, of op Klaar`;
-  if((d.max&&(decorCount[d.id]||0)>=d.max)||S.coins<d.cost)stopPlacing();}
+  if((d.max&&(decorCount[d.id]||0)>=d.max)||S.coins<d.cost)endPlace();}
 
 let expanding=null;
 function expand(){if(S.expansions>=EXPAND_COST.length||expanding)return;const cost=EXPAND_COST[S.expansions];
@@ -737,12 +833,12 @@ function levelUp(L){const lv=LEVELS[L];grassTarget.set(lv.grass);seaTarget.set(l
   showBanner('Je eiland is nu',lv.name,unl.length?'Nieuw: '+unl.join(', '):'Je eiland bloeit helemaal op');
   for(const t of T.values())rebuildTuft(t);
   for(let i=0;i<60;i++){const a=Math.random()*Math.PI*2,r=Math.random()*S.h;burst(new THREE.Vector3(Math.cos(a)*r,.3,Math.sin(a)*r),pick(['#ffd166','#ff8fb1','#9fe07a','#8fd6ff','#fff']),1,3.2);}
-  sfx.level();buzz([20,40,20]);renderSeeds(true);save();}
+  sfx.level();buzz([20,40,20]);renderSeeds();save();}
 
 /* Vissen */
 let fishTimer=8;const spots=[];
 const spotHitMat=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});
-function spawnSpot(){const g=new THREE.Group();const a=rnd(-.3,1.9);const r=S.h+rnd(1.3,2.8);
+function spawnSpot(){const g=new THREE.Group();const a=rnd(.05,1.9);const r=S.h+rnd(1.3,2.8);
   g.position.set(Math.cos(a)*r,-.3,Math.sin(a)*r);
   const ring=new THREE.Mesh(new THREE.TorusGeometry(.42,.05,6,28),new THREE.MeshBasicMaterial({color:'#e9fff8',transparent:true,opacity:.9}));ring.rotation.x=-Math.PI/2;g.add(ring);
   const ring2=ring.clone();ring2.material=ring.material.clone();g.add(ring2);
@@ -780,11 +876,18 @@ function bumpCoins(){const p=$('#coinPill');p.classList.remove('bump');void p.of
 let hintTimer=0;
 function showHint(txt,ms){if(!S.hints)return;const h=$('#hint');h.textContent=txt;h.classList.add('on');clearTimeout(hintTimer);if(ms)hintTimer=setTimeout(()=>{h.classList.remove('on');},ms);}
 function hideHint(){$('#hint').classList.remove('on');}
-function setHintStep(n){S.hint=n;
-  if(n===1){showHint('Tik op het plantje om water te geven 💧');for(const t of T.values())if(t.type==='soil'&&!t.crop)rebuildContent(t);
-    setTimeout(()=>{if(S.hint===1)setHintStep(2);},9000);}
-  else if(n===2)showHint('Rijpe gewassen stuiteren. Tik om te oogsten');
-  else if(n>=3){showHint('Goed zo! Met ⛏️ Spitten maak je meer akkers',4200);if(!S.farmerPicked&&S.hints)setTimeout(()=>toast('Tip: kies je boer in ⚙️ Instellingen'),5200);for(const t of T.values())if(t.type==='soil'&&!t.crop)rebuildContent(t);}}
+const HINTS=['Pak de 🌱 zaadzak en tik op de gloeiende akker','Pak de 💧 gieter en tik op het plantje','Rijp! Pak de 🌾 zeis en tik op het gewas'];
+// Welke knop moet wiebelen in de uitleg?
+const HINT_TOOL=['seed','can','sickle'];
+// Heb je het goede gereedschap al vast? Dan een kortere uitleg.
+const HINTS_HELD=['Tik op de gloeiende akker','Tik op het plantje om water te geven','Tik op het rijpe gewas'];
+const hintFor=n=>tool===HINT_TOOL[n]?HINTS_HELD[n]:HINTS[n];
+function setHintStep(n){S.hint=n;hudDirty=true;
+  if(n===0)showHint(hintFor(0));
+  else if(n===1){showHint(hintFor(1));for(const t of T.values())if(t.type==='soil'&&!t.crop)rebuildContent(t);
+    setTimeout(()=>{if(S.hint===1&&!dryCrops().length)setHintStep(2);},9000);}
+  else if(n===2){if(ripeCrops().length)showHint(hintFor(2));else showHint('Je plantje groeit. Rijpe gewassen stuiteren',5000);}
+  else if(n>=3){showHint('Goed zo! Met de ⛏️ hark maak je meer akkers',4200);if(!S.farmerPicked&&S.hints)setTimeout(()=>toast('Tip: kies je boer in ⚙️ Instellingen'),5200);for(const t of T.values())if(t.type==='soil'&&!t.crop)rebuildContent(t);}}
 
 /* Beestjes */
 const critterGroup=new THREE.Group();scene.add(critterGroup);let bugs=[];
@@ -854,24 +957,37 @@ setInterval(()=>{if(!AC||AC.state!=='running')return;if(!S.music){nextNote=AC.cu
 const fmt=n=>n>=10000?(n/1000).toFixed(1).replace('.',',')+'k':String(Math.floor(n));
 const fmtTime=s=>{s=Math.max(0,Math.ceil(s));const m=Math.floor(s/60);return m?`${m}:${String(s%60).padStart(2,'0')}`:`${s} s`;};
 let seedSig='';
-function renderSeeds(){const sig=[S.sel,S.golden,S.useGolden,S.harvests>=3,S.level,tilling].join('|');if(sig===seedSig)return;seedSig=sig;
+// Onderin: je gereedschap. Pak je de zaadzak, dan verschijnen de zaadjes erboven.
+function renderSeeds(){const owned=TOOLS.filter(x=>x.free||S.tools[x.id]);
+  const sig=[tool,S.sel,owned.map(x=>x.id).join(),S.golden,S.useGolden,S.harvests>=3,S.level].join('|');if(sig===seedSig)return;seedSig=sig;
+  toolPill();
   const bar=$('#seedbar');bar.innerHTML='';
-  {const b=document.createElement('button');b.className='app seed till'+(tilling?' sel':'');b.innerHTML=`<span class="e">⛏️</span><span class="p">Spitten</span>`;
-    b.setAttribute('aria-label',tilling?'Spitten staat aan, tik om te stoppen':'Spitten: tik op gras om nieuwe akkers te maken');b.setAttribute('aria-pressed',tilling);
-    b.onclick=()=>{initAudio();tilling?stopPlacing():startTilling();};bar.appendChild(b);}
+  for(const td of owned){const b=document.createElement('button');const on=tool===td.id;
+    b.className='app seed tool'+(td.free?'':' paid')+(on?' sel':'');b.dataset.tool=td.id;
+    b.innerHTML=`<span class="e">${td.id==='seed'?CROP[S.sel].e:td.e}</span><span class="p">${td.lbl}</span><span class="badge"></span>`;
+    b.setAttribute('aria-label',td.now?`${td.name}: ${td.desc}`:on?`${td.name} vast, tik om weg te leggen`:`${td.name}: ${td.desc}`);if(!td.now)b.setAttribute('aria-pressed',on);
+    b.onclick=()=>{initAudio();if(td.now){useNow(td.id);return;}setTool(on?null:td.id);};bar.appendChild(b);}
+  const row=$('#seedrow');row.innerHTML='';
   let teased=false;
   for(const cd of CROPS){const un=cropUnlocked(cd);if(!un){if(teased)continue;teased=true;}const b=document.createElement('button');b.className='app seed'+(un?'':' locked')+(S.sel===cd.id&&un?' sel':'');
     const req=cd.un.harv!=null?`${cd.un.harv} oogsten`:LEVELS[cd.un.lvl].name;
     b.innerHTML=un?`<span class="e">${cd.e}</span><span class="p">${cd.cost}<span class="coin sm"></span></span>`:`<span class="e">${cd.e}</span><span class="lk">🔒</span>`;
-    b.setAttribute('aria-label',un?`${cd.name}, kost ${cd.cost}, levert ${cd.sell} op`:`${cd.name}, vrij bij ${req}`);
-    b.onclick=()=>{if(!un){toast(`${cd.e} ${cd.name} komt vrij bij ${req}`);return;}if(S.sel===cd.id)return;S.sel=cd.id;renderSeeds(true);
+    b.setAttribute('aria-label',un?`${cd.name}, kost ${cd.cost}, levert ${cd.sell} op`:`${cd.name}, vrij bij ${req}`);if(un)b.setAttribute('aria-pressed',S.sel===cd.id);
+    b.onclick=()=>{if(!un){toast(`${cd.e} ${cd.name} komt vrij bij ${req}`);return;}if(S.sel===cd.id)return;S.sel=cd.id;renderSeeds();
       toast(`${cd.e} ${cd.name}: ${cd.cost} → ${cd.sell} munten, ${cd.grow} s${cd.regrow?', groeit opnieuw':''}${cd.aura?', buren groeien sneller':''}`);};
-    bar.appendChild(b);}
+    row.appendChild(b);}
   // Gouden zaadjes vast achteraan, zodat de andere knoppen niet verspringen.
   if(S.golden>0){const b=document.createElement('button');b.className='app seed gold'+(S.useGolden?' sel':'');b.innerHTML=`<span class="e">✨</span><span class="p">${S.useGolden?'AAN':'×'+S.golden}</span>`;
     b.setAttribute('aria-label',`Gouden zaadjes: ${S.golden}. ${S.useGolden?'Staat aan: je volgende gewas levert 3× zoveel op':'Tik om aan te zetten voor je volgende gewas'}`);b.setAttribute('aria-pressed',S.useGolden);
-    b.onclick=()=>{S.useGolden=!S.useGolden;toast(S.useGolden?'✨ Aan: je volgende gewas levert 3× zoveel op':'✨ Uit: gouden zaadjes bewaard');renderSeeds(true);};bar.appendChild(b);}
-  requestAnimationFrame(updateFade);}
+    b.onclick=()=>{S.useGolden=!S.useGolden;toast(S.useGolden?'✨ Aan: je volgende gewas levert 3× zoveel op':'✨ Uit: gouden zaadjes bewaard');renderSeeds();};row.appendChild(b);}
+  hudDirty=true;requestAnimationFrame(updateFade);}
+// Tellers op de knoppen (rijp, droog, lege akkers) en welke knop wiebelt.
+function toolBadges(){const n={ripe:ripeCrops().length,dry:dryCrops().length,empty:emptySoil().length};
+  const what={sickle:'ripe',scythe:'ripe',can:'dry',cart:'dry',seed:'empty',seeder:'empty'};
+  const nz=nudgeTool&&performance.now()<nudgeUntil?nudgeTool:S.hints&&S.hint<3?HINT_TOOL[S.hint]:null;
+  document.querySelectorAll('#seedbar [data-tool]').forEach(b=>{const id=b.dataset.tool,k=what[id];const v=k?n[k]:0;
+    const bd=b.querySelector('.badge');const txt=v&&(TOOL[id].now||id!=='seed')?String(v>99?'99+':v):'';if(bd.textContent!==txt)bd.textContent=txt;
+    b.classList.toggle('nudge',id===nz&&tool!==id);});}
 function updateFade(){const b=$('#seedbar');const over=b.scrollWidth>b.clientWidth+2;const more=over&&b.scrollLeft<b.scrollWidth-b.clientWidth-4;
   b.classList.toggle('fadeL',over&&b.scrollLeft>4);b.classList.toggle('fadeR',more);$('#seedMore').hidden=!more;}
 $('#seedbar').addEventListener('scroll',updateFade,{passive:true});$('#seedMore').onclick=()=>$('#seedbar').scrollBy({left:180,behavior:'smooth'});window.addEventListener('resize',updateFade);
@@ -884,12 +1000,32 @@ function hud(){const b=beauty(),L=S.level,cur=LEVELS[L].at,nx=LEVELS[L+1];
   const tn=$('#tonic');if(S.tonic>0){tn.hidden=false;$('#tonicT').textContent=fmtTime(S.tonic);}else tn.hidden=true;
   const h=Math.floor(S.time),m=Math.floor((S.time-h)*60);$('#clock').textContent=`${night>.5?'🌙':(S.time>=17&&S.time<20)||(S.time>=5&&S.time<7)?'🌅':'☀️'} ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
   const sb=$('#shopBtn');if(!S.shopHint&&S.coins>=30&&S.hint>=3)sb.classList.add('nudge');else sb.classList.remove('nudge');
+  const shedNew=TOOLS.some(x=>!x.free&&!S.tools[x.id]&&S.level>=x.lvl&&S.coins>=x.cost);
+  $('#shedBtn').classList.toggle('nudge',!S.shedHint&&S.shopHint&&shedNew);
+  if(shedNew&&!S.shedHint&&!shedTipShown&&S.shopHint){shedTipShown=true;toast('🛖 In de schuur ligt gereedschap dat je nu kunt kopen');}
+  toolBadges();
   if($('#sheet').classList.contains('on'))renderShopButtons();}
 
-let shopTab='decor';
-function openShop(){S.shopHint=true;renderShop();$('#sheet').classList.add('on');$('#scrim').classList.add('on');stopPlacing();sfx.plant&&tone(660,.08,'sine',.08);}
+let shopTab='decor',sheetMode='shop',shedTipShown=false;
+function openShop(){S.shopHint=true;sheetMode='shop';renderShop();$('#sheet').classList.add('on');$('#scrim').classList.add('on');stopPlacing();sfx.plant&&tone(660,.08,'sine',.08);}
 function closeShop(){$('#sheet').classList.remove('on');$('#scrim').classList.remove('on');}
+function openShed(){initAudio();closeEdit();closeOpts();S.shedHint=true;sheetMode='shed';renderShop();$('#sheet').classList.add('on');$('#scrim').classList.add('on');stopPlacing();tone(520,.08,'sine',.08);hudDirty=true;}
+function renderShed(grid){
+  // Eerst wat je kunt kopen, daarna het gratis gereedschap.
+  for(const td of [...TOOLS.filter(x=>!x.free),...TOOLS.filter(x=>x.free)]){const c=document.createElement('div');c.className='card';const own=td.free||S.tools[td.id];const locked=!own&&S.level<td.lvl;
+    if(locked){c.classList.add('locked');c.innerHTML=`<div class="e">${td.e}</div><h3>${td.name}</h3><p>${td.desc}</p><button class="buy" disabled>Bij ${LEVELS[td.lvl].name}</button>`;}
+    else c.innerHTML=`<div class="e">${td.e}</div><h3>${td.name}</h3><p>${td.desc}</p><div class="free">${td.free?'Gratis':td.now?'Werkt in één tik':'Pak vast en tik'}</div>
+      <button class="buy" data-act="tool" data-id="${td.id}" ${own?'disabled':`data-cost="${td.cost}"`}>${own?'✓ Heb je':`${td.cost}<span class="coin"></span>`}</button>`;
+    grid.appendChild(c);}
+  renderShopButtons();}
+function buyTool(id){const td=TOOL[id];if(S.tools[id])return;
+  if(S.coins<td.cost){toast(`Je hebt nog ${td.cost-S.coins} munten nodig voor de ${td.name}`);bumpCoins();return;}
+  S.coins-=td.cost;S.tools[id]=true;sfx.buy();bumpCoins();renderShop();renderSeeds();save();
+  toast(`${td.e} ${td.name} ligt nu bij je gereedschap onderin`);}
 function renderShop(){const grid=$('#grid');grid.innerHTML='';
+  const shed=sheetMode==='shed';$('#sheetTitle').textContent=shed?'Schuur':'Strandwinkel';$('#sheet').setAttribute('aria-label',shed?'Schuur':'Strandwinkel');$('#tabs').hidden=shed;
+  $('#shopClose').setAttribute('aria-label',shed?'Schuur sluiten':'Winkel sluiten');
+  if(shed){renderShed(grid);return;}
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===shopTab));
   const items=shopTab==='island'?[{expand:true},...DECOR.filter(d=>d.tab==='island')]:DECOR.filter(d=>d.tab===shopTab);
   for(const it of items){const c=document.createElement('div');c.className='card';
@@ -906,11 +1042,12 @@ function renderShop(){const grid=$('#grid');grid.innerHTML='';
 function renderShopButtons(){document.querySelectorAll('#grid .buy[data-cost]').forEach(b=>{b.classList.toggle('poor',S.coins<+b.dataset.cost);});}
 $('#grid').addEventListener('click',e=>{const b=e.target.closest('.buy');if(!b||b.disabled)return;
   if(b.dataset.act==='expand'){expand();return;}
+  if(b.dataset.act==='tool'){buyTool(b.dataset.id);return;}
   const d=DEC[b.dataset.id];if(S.coins<d.cost){toast(`Je hebt nog ${d.cost-S.coins} munten nodig voor ${d.name}`);bumpCoins();return;}startPlacing(d.id);});
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{shopTab=b.dataset.tab;renderShop();});
 $('#coinPill').onclick=()=>{const nx=TIERS[S.tier];
   toast(nx?`🧑‍🌾 ${TIER_NAMES[S.tier]}: nog ${nx-S.harvests} oogsten tot ${TIER_NAMES[S.tier+1]} (meer munten, sneller groeien)`:`🧑‍🌾 ${TIER_NAMES[S.tier]}: de hoogste boerenrang!`);};
-$('#shopBtn').onclick=()=>{initAudio();closeEdit();closeOpts();openShop();};$('#shopClose').onclick=closeShop;$('#scrim').onclick=()=>{closeShop();closeOpts();};
+$('#shopBtn').onclick=()=>{initAudio();closeEdit();closeOpts();openShop();};$('#shedBtn').onclick=openShed;$('#shopClose').onclick=closeShop;$('#scrim').onclick=()=>{closeShop();closeOpts();};
 function buzz(ms){if(S.haptics&&navigator.vibrate)try{navigator.vibrate(ms)}catch(e){}}
 function applyQuality(){renderer.setPixelRatio(S.quality==='low'?1:Math.min(window.devicePixelRatio||1,2));resize();}
 function openOpts(){closeShop();closeEdit();stopPlacing();renderOpts();$('#opts').classList.add('on');$('#scrim').classList.add('on');}
@@ -936,7 +1073,7 @@ $('#optBtn').onclick=()=>{initAudio();openOpts();};$('#optClose').onclick=closeO
 $('#zIn').onclick=()=>{viewH=clamp(viewH*.8,6,40);userZoomed=true;updateCam();};
 $('#zOut').onclick=()=>{viewH=clamp(viewH*1.25,6,40);userZoomed=true;updateCam();};
 $('#zAll').onclick=()=>{target.set(0,0,-.5);viewH=clamp(fitView(true),6,40);userZoomed=true;updateCam();};
-$('#camReset').onclick=()=>{target.set(0,0,-.5);userZoomed=false;fitCamera(true);closeOpts();};$('#placeDone').onclick=stopPlacing;
+$('#camReset').onclick=()=>{target.set(0,0,-.5);userZoomed=false;fitCamera(true);closeOpts();};$('#placeDone').onclick=()=>{if(placing||moving)endPlace();else stopPlacing();};
 function setFarmer(f){S.farmerPicked=true;if(f===S.farmer)return;S.farmer=f;island.remove(farmer);farmer=makeFarmer(f);farmer.position.copy(fpos);island.add(farmer);
   burst(fpos.clone().setY(.4),'#ffffff',14,1.6);burst(fpos.clone().setY(.4),'#ffe27a',6,1.8);sfx.tonic();save();}
 let resetArm=0;$('#tgReset').onclick=()=>{const b=$('#tgReset');if(Date.now()-resetArm<3000){try{localStorage.removeItem(OLD_KEY);localStorage.setItem(SAVE_KEY,JSON.stringify({v:1,gen:(S.gen||0)+1,last:Date.now()}));}catch(e){}noSave=true;location.reload();return;}
@@ -955,7 +1092,7 @@ canvas.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)re
 let lpTimer=0,lpFired=false;
 canvas.addEventListener('contextmenu',e=>{e.preventDefault();if(lpFired)return;lpFired=true;clearTimeout(lpTimer);longPress(e.clientX,e.clientY);});
 function pickTile(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,cam);
-  for(const h of ray.intersectObject(island,true)){let o=h.object;while(o&&o!==island){if(o.userData&&o.userData.key)return T.get(o.userData.key);if(o===dock||o===house)return null;o=o.parent;}}return null;}
+  for(const h of ray.intersectObject(island,true)){let o=h.object;while(o&&o!==island){if(o.userData&&o.userData.key)return T.get(o.userData.key);if(o===dock||o===house||o===shed)return null;o=o.parent;}}return null;}
 function longPress(x,y){const t=pickTile(x,y);if(!t||t.type==='house'||t.group.position.y<-.05)return;
   openEdit(t);}
 const endPtr=e=>{clearTimeout(lpTimer);if(!ptrs.has(e.pointerId))return;if(ptrs.size===1&&!moved&&!lpFired&&e.type==='pointerup'){if(editing)closeEdit();else tap(e.clientX,e.clientY);}ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;};
@@ -968,7 +1105,7 @@ const groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),gp=new THREE.Vecto
 function groundTile(){return ray.ray.intersectPlane(groundPlane,gp)?T.get(key(Math.floor(gp.x),Math.floor(gp.z))):null;}
 // Tik je op iets hoogs (huis, boom, versiering) terwijl de grond eronder een akker is, of je bent aan het
 // plaatsen/spitten, dan telt de grond: zo kun je akkers achter het huis gewoon gebruiken.
-function groundFirst(t){const g=groundTile();return g&&g!==t&&g.type!=='house'&&g.group.position.y>=-.05&&(g.type==='soil'||placing||tilling||moving)?g:null;}
+function groundFirst(t){const g=groundTile();return g&&g!==t&&g.type!=='house'&&g.group.position.y>=-.05&&(g.type==='soil'||placing||tool==='rake'||tool==='wrake'||moving)?g:null;}
 function tap(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,cam);
   const sh=ray.intersectObjects(spots.map(s=>s.userData.hit),false);if(sh.length){catchFish(sh[0].object.userData.spot);return;}
   const dh=ray.intersectObject(dock,true);
@@ -976,6 +1113,7 @@ function tap(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCame
   for(const h of hits){let o=h.object;while(o&&o!==island){
     if(o.userData&&o.userData.key){const t=T.get(o.userData.key);const g=(t.decor||t.type==='house')&&groundFirst(t);onTileTap(g||t);return;}
     if(o===dock){openShop();return;}
+    if(o===shed){openShed();return;}
     if(o===house){const g=groundFirst(null);if(g){onTileTap(g);return;}toast('Huisje, welkom thuis 🏡');return;}
     o=o.parent;}}
   if(dh.length){openShop();}}
@@ -1013,7 +1151,7 @@ function frame(now){const dt=Math.min(.1,(now-last)/1000);last=now;clock+=dt;
   if(S.dayMode==='day')S.time=13;else if(S.dayMode==='night')S.time=22.5;else S.time=(S.time+dt*24/480)%24;const day=dayAmt(S.time),dusk=duskAmt(S.time);night=1-day;
   if(S.tonic>0)S.tonic=Math.max(0,S.tonic-dt);
   for(const t of T.values())if(t.crop){const cd=CROP[t.crop.id];if(t.crop.p<cd.grow){t.crop.p=Math.min(cd.grow,t.crop.p+dt*growMult(t));
-      const st=stageOf(t.crop);if(st!==t.stage){rebuildContent(t);if(st===3){popTile(t,.4);burst(tileWorld(t,.5),'#fff6c0',6,1.2);if(S.hint===1)setHintStep(2);}}}}
+      const st=stageOf(t.crop);if(st!==t.stage){rebuildContent(t);if(st===3){popTile(t,.4);burst(tileWorld(t,.5),'#fff6c0',6,1.2);if(S.hint===1||S.hint===2)setHintStep(2);hudDirty=true;}}}}
   for(const t of T.values()){if(t.pop>0){t.pop=Math.max(0,t.pop-dt*1.6);const k=t.pop;const s=1+Math.sin(k*20)*k*.35;
       t.group.scale.set(1+(s-1)*.5,s,1+(s-1)*.5);}else if(t.group.scale.y!==1)t.group.scale.set(1,1,1);}
   if(expanding){let done=true;for(const t of expanding.tiles){const k=(clock-expanding.start-t.delay)/1.4;if(k<1)done=false;
@@ -1067,12 +1205,12 @@ grassTarget.set(LEVELS[S.level].grass);seaTarget.set(LEVELS[S.level].sea);
 {const away=clamp((Date.now()-(S.last||Date.now()))/1000,0,3*3600);
   if(away>20){let ripe=0;for(const t of T.values())if(t.crop){const cd=CROP[t.crop.id];const was=t.crop.p<cd.grow;t.crop.p=Math.min(cd.grow,t.crop.p+away*baseMult(t));if(was&&t.crop.p>=cd.grow)ripe++;rebuildContent(t);}
     S.tonic=Math.max(0,S.tonic-away);S.time=(S.time+away*24/480)%24;if(ripe)setTimeout(()=>toast(`Welkom terug! ${ripe} ${ripe>1?'gewassen zijn':'gewas is'} rijp 🌾`),500);}}
-critters();resize();renderSeeds(true);hud();save();
-if(S.hint===0)showHint('Tik op de gloeiende akker');else if(S.hint===1)showHint('Tik op het plantje om water te geven 💧');else if(S.hint===2)showHint('Rijpe gewassen stuiteren. Tik om te oogsten');
+critters();resize();renderSeeds();hud();save();
+if(S.hint<3)setHintStep(S.hint);
 if(S.rod)fishTimer=5;
 requestAnimationFrame(frame);
 // Alleen voor testen: kleine haak om de game te inspecteren.
-window.__farm={S,T,spots,scr:k=>{const t=T.get(k);const v=new THREE.Vector3(t.x+.5,0,t.z+.5).project(cam);return[(v.x+1)/2*innerWidth,(1-v.y)/2*innerHeight];}};
+window.__farm={S,T,spots,tool:()=>tool,scr:k=>{const t=T.get(k);const v=new THREE.Vector3(t.x+.5,0,t.z+.5).project(cam);return[(v.x+1)/2*innerWidth,(1-v.y)/2*innerHeight];}};
 window.__lfi={toast};
 };
 /* ---------------- GLOOP-ACCOUNT ----------------
