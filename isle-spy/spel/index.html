@@ -6,15 +6,15 @@
 <meta name="theme-color" content="#7cc4dc">
 <title>Isle Spy – Gloop XL</title>
 <meta name="description" content="Isle Spy: elke dag een nieuw eiland vol schapen. Vind het schaap uit de opdracht.">
-<link rel="manifest" href="../../manifest.webmanifest">
-<link rel="icon" href="../icon-192.png">
-<link rel="apple-touch-icon" href="../icon-180.png">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Isle Spy">
 <style>
-@font-face{font-family:"Fredoka";font-weight:500;font-display:swap;src:url(../../fonts/fredoka-latin-500-normal.woff2) format("woff2")}
-@font-face{font-family:"Fredoka";font-weight:600;font-display:swap;src:url(../../fonts/fredoka-latin-600-normal.woff2) format("woff2")}
-@font-face{font-family:"Fredoka";font-weight:700;font-display:swap;src:url(../../fonts/fredoka-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:500;font-display:swap;src:url(../fonts/fredoka-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:600;font-display:swap;src:url(../fonts/fredoka-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:700;font-display:swap;src:url(../fonts/fredoka-latin-700-normal.woff2) format("woff2")}
 :root{--cream:#fdf6e8;--card:#fffbf3;--ink:#3d2c1e;--ink-soft:#7a6450;--honey:#ffd073;--honey-deep:#e9ac3f;--sky:#9fd3e6;--chip:#efe3cc;
   --shadow:0 3px 0 rgba(61,44,30,.14),0 8px 18px rgba(20,50,70,.2);color-scheme:light}
 *,*::before,*::after{box-sizing:border-box}
@@ -90,7 +90,7 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px}
 </head>
 <body>
 <canvas id="c" aria-label="Isle Spy, het eiland"></canvas>
-<div id="nogl"><div><p><b>Je browser kan dit 3D-spel niet laten zien.</b></p><p>Probeer een nieuwere browser of zet hardwareversnelling aan.</p><p><a href="../../" target="_top" style="color:#fff">Terug naar Gloop XL</a></p></div></div>
+<div id="nogl"><div><p><b>Je browser kan dit 3D-spel niet laten zien.</b></p><p>Probeer een nieuwere browser of zet hardwareversnelling aan.</p><p><a href="../" target="_top" style="color:#fff">Terug naar Gloop XL</a></p></div></div>
 
 <div id="top">
   <div id="row">
@@ -110,7 +110,7 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px}
 <div id="floaties"></div>
 <div id="card"><div class="box" id="cardBox"></div></div>
 
-<script src="../../vendor/three.r128.min.js"></script>
+<script src="../vendor/three.r128.min.js"></script>
 <script>
 (()=>{'use strict';
 const $=s=>document.querySelector(s);
@@ -610,7 +610,7 @@ window.__spy={setup,KEYS,game,sheepAt,sheep:()=>sheep,world:()=>world,view,updat
   const inFrame=window.top!==window;let pd=null;try{pd=inFrame?parent.document:null;}catch(e){}
   const fsEl=()=>pd&&(pd.fullscreenElement||pd.webkitFullscreenElement);
   const upd=()=>{b.hidden=inFrame?!fsEl():false;b.setAttribute('aria-label',inFrame?'Volledig scherm sluiten':'Spel sluiten, terug naar de spelpagina');};
-  b.onclick=()=>{if(inFrame){const f=pd.exitFullscreen||pd.webkitExitFullscreen;if(f)f.call(pd);}else location.href='../';};
+  b.onclick=()=>{if(inFrame){const f=pd.exitFullscreen||pd.webkitExitFullscreen;if(f)f.call(pd);}else location.href='../isle-spy';};
   if(pd){pd.addEventListener('fullscreenchange',upd);pd.addEventListener('webkitfullscreenchange',upd);}
   upd();})();
 </script>

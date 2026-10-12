@@ -1,7 +1,7 @@
 // Gloop XL – offline spelen. Werkt op gloop-xl.vercel.app/ én binnen Gloop op /xl/ (alles ten opzichte van de scope).
 // Pagina's: eerst internet (dan zie je updates), anders de cache. Vaste bestanden (Three.js, lettertypen, iconen): eerst de cache.
 // Iets veranderd in vendor/, fonts/ of icons/? Verhoog dan VERSIE.
-const VERSIE = 'gloopxl-v13';
+const VERSIE = 'gloopxl-v14';
 const SCOPE = self.registration.scope;                 // bijv. https://gloop-xl.vercel.app/ of https://www.gloopie.nl/xl/
 const BASE = new URL(SCOPE).pathname;
 const START = ['', 'little-farm-island', 'little-farm-island/spel', 'isle-spy', 'isle-spy/spel', 'isle-spy/icon-192.png', 'privacy', 'cookies', 'xl.css', 'xl.js', 'manifest.webmanifest',
