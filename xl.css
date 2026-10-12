@@ -64,6 +64,8 @@ main{padding:28px 0 56px}
 .game-art img{display:block;width:100%;height:100%}
 .tag{font-weight:800;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .game h3{font-size:clamp(28px,4vw,44px);font-weight:700;margin:6px 0 10px}
+.game+.game{margin-top:clamp(18px,3vw,28px)}
+.new-badge{display:inline-block;vertical-align:middle;font-size:.36em;background:#6BE38A;color:#221A48;border-radius:999px;padding:.2em .7em;margin-left:.3em;transform:translateY(-.2em)}
 .game p{margin:0 0 18px;font-weight:600;max-width:62ch}
 .note{margin:16px 0 0!important;font-size:15px;color:var(--muted)}
 .soon{margin-top:16px;border:3px dashed #3a3175;border-radius:24px;padding:18px 22px;color:var(--muted);font-weight:700}

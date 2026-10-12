@@ -1,0 +1,67 @@
+<!doctype html><html lang="nl"><head><meta charset="utf-8"><script>/* Werkt op gloop-xl.vercel.app/ én binnen Gloop op /xl/ */(function(){var b=document.createElement("base");b.href=/^\/xl(\/|$)/.test(location.pathname)?"/xl/":"/";document.head.appendChild(b);})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0E0B22">
+<title>Isle Spy – Gloop XL</title><meta name="description" content="Isle Spy: elke dag een nieuw 3D-eiland vol schapen. Vind het schaap met de juiste hoed, sjaal of bril, zo snel als je kunt. Gratis in je browser, zonder reclame.">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-180.png"><link rel="stylesheet" href="xl.css">
+</head><body>
+<a class="sr-only" href="#inhoud">Naar de inhoud</a>
+<header class="top"><div class="wrap">
+<a class="brand" href="./" aria-label="Gloop XL, naar de startpagina"><span class="logo-word" id="logoWord" aria-hidden="true">gl<span class="eyes"><span class="eye"><span class="pupil"></span></span><span class="eye"><span class="pupil"></span></span></span>p<span class="logo-xl">XL</span></span></a>
+<nav aria-label="Hoofdmenu"><a class="navlink" href="./#games">Games</a><span class="acc" id="acc" aria-live="polite"></span><a class="hpill back-gloop" href="https://www.gloopie.nl/" data-gloop="/">← Gloop</a></nav>
+</div></header>
+<main id="inhoud"><div class="wrap">
+<a class="back-link" href="./#games">← Alle XL-games</a>
+<div class="gtitle">
+<img src="isle-spy/icon-192.png" alt="" width="64" height="64">
+<div><h1>Isle Spy</h1><p class="tag">3D · Zoekspel · Elke dag nieuw · aanrader vanaf 12 jaar</p></div>
+</div>
+
+<section class="gframe" aria-label="Het spel">
+<div class="gbar">
+<span class="gstatus">🔎 Elke dag om middernacht een nieuw eiland</span>
+<a class="gbtn gbtn-plain" href="isle-spy#hoe">Uitleg</a>
+<button type="button" class="gbtn" id="full" aria-label="Volledig scherm"><span aria-hidden="true">⛶</span><span class="full-l"> Volledig scherm</span></button>
+</div>
+<div class="stage" id="stage">
+<iframe id="game" src="isle-spy/spel" title="Isle Spy: het spel" allow="fullscreen; autoplay"></iframe>
+</div>
+</section>
+<p class="small hint">Tip: tik of klik in het spel om te beginnen. Op een telefoon scrol je de pagina buiten het spelvak.</p>
+
+<section class="section" id="hoe" aria-labelledby="ht">
+<h2 id="ht">Zo speel je Isle Spy</h2>
+<div class="grid">
+<div class="card"><h3>Het idee</h3><ul>
+<li>Elke dag staat er een <b>nieuw eiland</b> klaar, voor iedereen hetzelfde.</li>
+<li>Er lopen meer dan honderd schapen rond, met petten, hoeden, sjaals, brillen en bloemenkransen.</li>
+<li>Je krijgt <b>drie opdrachten</b>, steeds lastiger. Bijvoorbeeld: <i>vind het schaap met de strohoed en het belletje</i>. Er is er altijd precies één.</li></ul></div>
+<div class="card"><h3>Besturing</h3><ul>
+<li><b>Slepen</b> om het eiland te draaien.</li>
+<li><b>Knijpen</b> met twee vingers of <b>scrollen</b> om te zoomen. Met twee vingers schuif je ook.</li>
+<li><b>Tikken</b> op het schaap uit de opdracht. Mis? Dan zie je wat dat schaap draagt, en gaat er 10 seconden bij je tijd.</li>
+<li>Vast? Een 💡 <b>hint</b> laat zien op welke laag hij staat (kost 20 seconden).</li></ul></div>
+<div class="card"><h3>Je reeks</h3><p>Speel elke dag en bouw een reeks 🔥 op. Na afloop deel je je uitslag, zoals 🟩🟩🟨, zonder te verklappen waar de schapen stonden. Nog niet genoeg? Speel een extra eiland (telt niet mee).</p></div>
+<div class="card"><h3>Goed om te weten</h3><p>Het spel heeft 3D nodig (WebGL), dat kan elke recente browser. Je reeks en uitslagen worden op dit apparaat bewaard. Geen reclame en geen aankopen met echt geld.</p></div>
+</div>
+</section>
+
+<script>
+// Volledig scherm: het spelvak groot. Kan dat niet (bijv. op iPhone), dan het spel op een eigen pagina.
+(()=>{const stage=document.getElementById('stage'),btn=document.getElementById('full');
+const solo=()=>location.assign(document.baseURI.replace(/\/$/,'')+'/isle-spy/spel');
+btn.addEventListener('click',()=>{
+  if(document.fullscreenElement){document.exitFullscreen();return;}
+  if(stage.requestFullscreen&&document.fullscreenEnabled)stage.requestFullscreen().catch(solo);
+  else if(stage.webkitRequestFullscreen)stage.webkitRequestFullscreen();
+  else solo();
+});
+// Net als bij de minigames van Gloop: het spel meteen helemaal in beeld.
+const frame=document.querySelector('.gframe');
+if(!location.hash&&frame.getBoundingClientRect().bottom>innerHeight)window.scrollTo({top:frame.getBoundingClientRect().top+scrollY-10,behavior:'instant'});
+document.addEventListener('fullscreenchange',()=>{btn.lastChild.textContent=document.fullscreenElement?' Klein scherm':' Volledig scherm';btn.setAttribute('aria-label',document.fullscreenElement?'Klein scherm':'Volledig scherm');document.getElementById('game').focus();});
+})();
+</script>
+</div></main>
+<footer><div class="wrap"><span>© 2026 Gloop XL · een site van <a href="https://www.gloopie.nl/" data-gloop="/">Gloop</a></span>
+<nav aria-label="Onderaan"><a href="privacy">Privacy</a><a href="cookies">Cookies</a><a href="mailto:gloop.mini.games@gmail.com">Contact</a><a href="https://www.gloopie.nl/" data-gloop="/">Naar Gloop</a></nav></div></footer>
+<script src="xl.js"></script>
+</body></html>

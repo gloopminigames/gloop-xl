@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#7cc4dc">
+<title>Isle Spy – Gloop XL</title>
+<meta name="description" content="Isle Spy: elke dag een nieuw eiland vol schapen. Vind het schaap uit de opdracht.">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Isle Spy">
+<style>
+@font-face{font-family:"Fredoka";font-weight:500;font-display:swap;src:url(../../fonts/fredoka-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:600;font-display:swap;src:url(../../fonts/fredoka-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Fredoka";font-weight:700;font-display:swap;src:url(../../fonts/fredoka-latin-700-normal.woff2) format("woff2")}
+:root{--cream:#fdf6e8;--card:#fffbf3;--ink:#3d2c1e;--ink-soft:#7a6450;--honey:#ffd073;--honey-deep:#e9ac3f;--sky:#9fd3e6;--chip:#efe3cc;
+  --shadow:0 3px 0 rgba(61,44,30,.14),0 8px 18px rgba(20,50,70,.2);color-scheme:light}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;overflow:hidden;background:var(--sky);color:var(--ink);font-family:"Fredoka",ui-rounded,"SF Pro Rounded","Nunito","Segoe UI",system-ui,sans-serif;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.pill{background:var(--cream);border-radius:22px;box-shadow:var(--shadow);padding:7px 14px;display:flex;align-items:center;gap:7px;font-weight:600}
+
+/* Bovenin: tijd, voortgang en de opdracht */
+#top{position:fixed;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 0;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;z-index:5}
+#row{display:flex;gap:8px;width:100%;max-width:640px;align-items:center}
+#timer{font-size:19px;font-weight:700;min-width:92px;justify-content:center;font-variant-numeric:tabular-nums}
+#timer.pen{animation:pen .6s}
+@keyframes pen{30%{background:#ffd2c4;transform:scale(1.08)}}
+#steps{flex:1;justify-content:center;gap:10px;font-size:15px}
+.dot{width:14px;height:14px;border-radius:50%;background:#e5d6bb;box-shadow:inset 0 -2px 0 rgba(0,0,0,.08)}
+.dot.on{background:var(--honey);box-shadow:0 0 0 3px rgba(255,208,115,.45)}
+.dot.ok{background:#6cc06a}
+.round{pointer-events:auto;flex:none;width:46px;height:46px;border-radius:50%;background:var(--cream);box-shadow:var(--shadow);font-size:20px;font-weight:700;display:grid;place-items:center;color:#5a3b1e}
+.round:active{transform:scale(.92)}
+#quest{pointer-events:none;width:100%;max-width:640px;background:#fff;border-radius:22px;box-shadow:var(--shadow);padding:12px 16px;display:flex;align-items:center;gap:12px;transition:transform .35s,opacity .35s}
+#quest.out{transform:translateY(-14px);opacity:0}
+#qText{flex:1;font-size:clamp(17px,4.6vw,22px);font-weight:700;line-height:1.2}
+#qChips{display:flex;flex-direction:column;gap:4px;align-items:center;flex:none}
+.chip{font-size:24px;line-height:1;position:relative}
+.chip i{position:absolute;right:-4px;bottom:-2px;width:11px;height:11px;border-radius:50%;border:2px solid #fff}
+
+#side{position:fixed;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);display:flex;flex-direction:column;gap:8px;z-index:5}
+#dock{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;justify-content:center;z-index:5;pointer-events:none}
+#hintBtn{pointer-events:auto;background:linear-gradient(#ffe29a,#ffd073);box-shadow:0 4px 0 var(--honey-deep),0 8px 18px rgba(20,50,70,.2);border-radius:22px;padding:11px 22px;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+#hintBtn small{font-size:13px;font-weight:600;color:#7a5a2a}
+#hintBtn:active{transform:translateY(2px)}
+#hintBtn[disabled]{opacity:.5}
+
+#toasts{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 170px);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;z-index:7;width:max-content;max-width:min(520px,calc(100vw - 32px))}
+.toast{background:rgba(253,246,232,.97);border-radius:16px;padding:8px 14px;font-size:15px;font-weight:600;box-shadow:var(--shadow);text-align:center;animation:tin .25s ease-out,tout .4s ease-in 2.6s forwards}
+@keyframes tin{from{opacity:0;transform:translateY(-8px) scale(.96)}}
+@keyframes tout{to{opacity:0;transform:translateY(-6px)}}
+#floaties{position:fixed;inset:0;pointer-events:none;z-index:6;overflow:hidden}
+.floaty{position:absolute;transform:translate(-50%,-100%);font-weight:700;font-size:16px;white-space:nowrap;background:var(--cream);border-radius:14px;padding:5px 11px;box-shadow:var(--shadow);animation:fly 1.8s ease-out forwards}
+.floaty.bad b{color:#c4462e}
+.floaty.good{background:#e6f8dc;font-size:19px}
+@keyframes fly{0%{opacity:0;transform:translate(-50%,-60%) scale(.7)}12%{opacity:1;transform:translate(-50%,-110%) scale(1.05)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-190%)}}
+
+/* Start- en eindscherm */
+#card{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(20,60,80,.28);transition:opacity .3s}
+#card.off{opacity:0;pointer-events:none}
+.box{background:var(--cream);border-radius:28px;box-shadow:0 18px 50px rgba(10,40,60,.35);padding:22px 22px 20px;width:min(420px,100%);max-height:calc(100% - 20px);overflow:auto;text-align:center;touch-action:pan-y}
+.box h1{margin:2px 0 0;font-size:34px;letter-spacing:.01em}
+.box h1 span{color:#3f9fbd}
+.box .sub{margin:2px 0 14px;font-weight:600;color:var(--ink-soft)}
+.box p{margin:8px 0;font-size:16px;line-height:1.35}
+.box ul{text-align:left;margin:10px 0 16px;padding-left:22px;font-size:15.5px;line-height:1.4}
+.big{display:block;width:100%;margin-top:10px;border-radius:18px;padding:13px 0;font-size:20px;font-weight:700;background:linear-gradient(#ffe29a,#ffd073);box-shadow:0 4px 0 var(--honey-deep)}
+.big:active{transform:translateY(2px);box-shadow:0 2px 0 var(--honey-deep)}
+.big.plain{background:var(--chip);box-shadow:none;font-size:17px}
+.stats{display:flex;justify-content:center;gap:8px;margin:12px 0 4px;flex-wrap:wrap}
+.stat{background:#fff;border-radius:16px;padding:8px 12px;min-width:84px}
+.stat b{display:block;font-size:22px}
+.stat span{font-size:12.5px;color:var(--ink-soft);font-weight:600}
+.squares{font-size:26px;letter-spacing:4px;margin:8px 0 2px}
+.next{font-size:14px;color:var(--ink-soft);font-weight:600;margin-top:10px}
+.mascot{font-size:52px;line-height:1}
+#nogl{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:24px;text-align:center;z-index:20;background:#3f8fb0;color:#fff;font-size:18px}
+#nogl.on{display:flex}
+@media (max-width:420px){#quest{padding:10px 12px;border-radius:18px}.chip{font-size:21px}#timer{min-width:80px;font-size:17px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Isle Spy, het eiland"></canvas>
+<div id="nogl"><div><p><b>Je browser kan dit 3D-spel niet laten zien.</b></p><p>Probeer een nieuwere browser of zet hardwareversnelling aan.</p><p><a href="../../" target="_top" style="color:#fff">Terug naar Gloop XL</a></p></div></div>
+
+<div id="top">
+  <div id="row">
+    <div class="pill" id="timer" aria-label="Tijd">⏱ 0:00</div>
+    <div class="pill" id="steps" aria-label="Zoektocht"><span id="stepT">Zoektocht 1/3</span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <button class="round" id="exitBtn" aria-label="Spel sluiten" hidden>✕</button>
+  </div>
+  <div id="quest" class="out" aria-live="polite"><div id="qText"></div><div id="qChips" aria-hidden="true"></div></div>
+</div>
+<div id="side">
+  <button class="round" id="zIn" aria-label="Inzoomen">+</button>
+  <button class="round" id="zOut" aria-label="Uitzoomen">−</button>
+  <button class="round" id="zAll" aria-label="Heel eiland bekijken">🏝️</button>
+</div>
+<div id="dock"><button id="hintBtn" aria-label="Hint, kost 20 seconden">💡 Hint <small>+20 s</small></button></div>
+<div id="toasts" aria-live="polite"></div>
+<div id="floaties"></div>
+<div id="card"><div class="box" id="cardBox"></div></div>
+
+<script src="../../vendor/three.r128.min.js"></script>
+<script>
+(()=>{'use strict';
+const $=s=>document.querySelector(s);
+if(!window.THREE||!(()=>{try{const c=document.createElement('canvas');return !!(c.getContext('webgl')||c.getContext('experimental-webgl'));}catch(e){return false;}})()){$('#nogl').classList.add('on');return;}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const key=(x,z)=>x+','+z;
+
+/* ---------------- DAG EN DOBBELSTEEN ----------------
+   Elke dag hetzelfde eiland voor iedereen: alles komt uit een 'dobbelsteen' met de datum als startgetal. */
+const DAY0=Date.UTC(2026,9,12);   // Isle Spy #1
+const pad=n=>String(n).padStart(2,'0');
+const dayKey=(d=new Date())=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const dayNum=k=>{const [y,m,d]=k.split('-').map(Number);return Math.round((Date.UTC(y,m-1,d)-DAY0)/864e5)+1;};
+const prevKey=k=>{const [y,m,d]=k.split('-').map(Number);return dayKey(new Date(y,m-1,d-1));};
+function hashStr(s){let h=1779033703^s.length;for(let i=0;i<s.length;i++){h=Math.imul(h^s.charCodeAt(i),3432918353);h=h<<13|h>>>19;}return h>>>0;}
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ---------------- OPSLAG (alleen op dit apparaat) ---------------- */
+const SAVE='islespy.v1';
+let D;try{D=JSON.parse(localStorage.getItem(SAVE)||'null');}catch(e){D=null;}
+if(!D||D.v!==1)D={v:1,days:{},streak:0,last:'',best:0,played:0};
+const store=()=>{try{localStorage.setItem(SAVE,JSON.stringify(D));}catch(e){}};
+
+/* ---------------- KENMERKEN ---------------- */
+const HATS={red:{t:'de rode pet',c:'#d9473b',e:'🧢'},blue:{t:'de blauwe pet',c:'#3d6fd1',e:'🧢'},green:{t:'de groene pet',c:'#3c9a4c',e:'🧢'},
+  straw:{t:'de strohoed',c:'#e9c46a',e:'👒'},top:{t:'de hoge hoed',c:'#2b2b33',e:'🎩'}};
+const NECKS={red:{t:'de rode sjaal',c:'#d9473b',e:'🧣'},blue:{t:'de blauwe sjaal',c:'#3d6fd1',e:'🧣'},yellow:{t:'de gele sjaal',c:'#f2c230',e:'🧣'},
+  bell:{t:'het belletje',c:'#f0b429',e:'🔔'}};
+const EXTRAS={glasses:{t:'de zonnebril',e:'🕶️'},crown:{t:'de bloemenkrans',e:'🌸'},bag:{t:'het rugzakje',c:'#e07b39',e:'🎒'}};
+const POOL={hat:[['',44],['red',10],['blue',10],['green',10],['straw',13],['top',6]],neck:[['',48],['red',12],['blue',12],['yellow',12],['bell',12]],
+  extra:[['',54],['glasses',18],['crown',15],['bag',13]],wool:[['white',93],['black',7]]};
+const LABEL={hat:HATS,neck:NECKS,extra:EXTRAS};
+
+/* ---------------- THREE ---------------- */
+const canvas=$('#c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+const scene=new THREE.Scene();
+const SKY=new THREE.Color('#bfe4ef');scene.background=SKY;scene.fog=new THREE.Fog(SKY,55,120);
+const cam=new THREE.PerspectiveCamera(36,1,.5,300);
+scene.add(new THREE.HemisphereLight('#fff8e6','#5d7d5a',.78));
+const sun=new THREE.DirectionalLight('#fff2da',.62);sun.position.set(-8,16,10);scene.add(sun);
+scene.add(new THREE.AmbientLight('#ffffff',.16));
+const geoBox=new THREE.BoxGeometry(1,1,1);
+const matCache={};
+function M(c){return matCache[c]||(matCache[c]=new THREE.MeshLambertMaterial({color:c,flatShading:true}));}
+function B(p,w,h,d,c,x,y,z){const m=new THREE.Mesh(geoBox,typeof c==='string'?M(c):c);m.scale.set(w,h,d);m.position.set(x,y+h/2,z);p.add(m);return m;}
+function radialTex(inner,outer){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');
+  const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,inner);gr.addColorStop(1,outer);g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);}
+const shadowTex=radialTex('rgba(30,40,20,.42)','rgba(30,40,20,0)');
+const glowTex=radialTex('rgba(255,236,160,1)','rgba(255,220,120,0)');
+
+// Zee met golfjes, en een zandbank eronder (zo krijg je lichtblauw ondiep water rond het eiland)
+const seaGeo=new THREE.PlaneGeometry(160,160,60,60);seaGeo.rotateX(-Math.PI/2);
+const seaMat=new THREE.MeshLambertMaterial({color:'#2b8fc4',flatShading:true,transparent:true,opacity:.8});
+const sea=new THREE.Mesh(seaGeo,seaMat);sea.position.y=0;scene.add(sea);
+const seaBase=seaGeo.attributes.position.array.slice();
+const shoal=new THREE.Mesh(new THREE.CircleGeometry(15.5,48),new THREE.MeshLambertMaterial({color:'#e9dca6'}));shoal.rotation.x=-Math.PI/2;shoal.position.y=-.9;scene.add(shoal);
+const deep=new THREE.Mesh(new THREE.PlaneGeometry(400,400),new THREE.MeshLambertMaterial({color:'#1d6f93'}));deep.rotation.x=-Math.PI/2;deep.position.y=-2.4;scene.add(deep);
+
+let world=null;   // alles van het huidige eiland
+const solids=[];  // waar een tik/blik op botst (voor 'staat hij erachter?')
+
+/* ---------------- EILAND BOUWEN ---------------- */
+const TOP=l=>l===0?.32:.32+l*1.15;   // hoogte van de bovenkant per laag
+const N4=[[1,0],[-1,0],[0,1],[0,-1]];
+const thin=m=>{m.raycast=()=>{};return m;};
+function genIsland(R){
+  const N=13,G=9,grid=[];for(let i=0;i<(G+2)*(G+2);i++)grid.push(R());
+  const vn=(x,z,o=0)=>{const u=(x+N)/(2*N)*G+o,v=(z+N)/(2*N)*G+o*.7;const i=Math.floor(u),j=Math.floor(v),fu=u-i,fv=v-j;const s=t=>t*t*(3-2*t);
+    const g=(a,b)=>grid[(clamp(b,0,G+1))*(G+2)+clamp(a,0,G+1)];const a=g(i,j)+(g(i+1,j)-g(i,j))*s(fu),b=g(i,j+1)+(g(i+1,j+1)-g(i,j+1))*s(fu);return a+(b-a)*s(fv);};
+  const RAD=10.4,LMAX=5,peak=[(R()*2-1)*2.2,(R()*2-1)*2.2];
+  const C=new Map();
+  for(let x=-N;x<N;x++)for(let z=-N;z<N;z++){
+    const shore=1-Math.hypot(x+.5,z+.5)/RAD+(vn(x,z)-.5)*.42;if(shore<0)continue;
+    const dp=Math.hypot(x+.5-peak[0],z+.5-peak[1])/RAD;
+    let l=Math.floor(((1-dp)*1.2+(vn(x,z,.5)-.5)*.5)*LMAX*.95);
+    l=shore<.13?0:clamp(l,1,Math.min(LMAX,1+Math.floor(shore*LMAX*1.5)));
+    C.set(key(x,z),{x,z,l,k:key(x,z),occ:null,water:false});}
+  // losse uitschieters en rand: niet hoger dan de buren toelaten
+  for(let pass=0;pass<3;pass++)for(const c of C.values()){const ns=N4.map(([dx,dz])=>C.get(key(c.x+dx,c.z+dz)));
+    if(ns.some(n=>!n)){if(c.l>1)c.l=1;continue;}
+    const mx=Math.max(...ns.map(n=>n.l));if(c.l>mx)c.l=mx;
+    if(ns.filter(n=>n.l>=c.l).length<2&&c.l>0)c.l--;}
+  // losse eilandjes weghalen: alleen wat vast zit aan het midden
+  const start=[...C.values()].sort((a,b)=>b.l-a.l)[0];const seen=new Set([start.k]);const q=[start];
+  while(q.length){const c=q.pop();for(const[dx,dz]of N4){const n=C.get(key(c.x+dx,c.z+dz));if(n&&!seen.has(n.k)){seen.add(n.k);q.push(n);}}}
+  for(const k of [...C.keys()])if(!seen.has(k))C.delete(k);
+  return C;}
+
+const THEME={name:'Schapeneiland',animal:'schaap',animals:'schapen',e:'🐑',
+  rock:['#8c8f99','#7f838e','#959aa3'],grass:['#7cc04f','#86c955','#74b84a'],sand:'#f0dea4',sandSide:'#d9c287'};
+
+function buildWorld(seed){
+  if(world){scene.remove(world.g);solids.length=0;}
+  const R=mulberry(seed);const pick=a=>a[Math.floor(R()*a.length)];
+  const g=new THREE.Group();scene.add(g);
+  const C=genIsland(R);const cells=[...C.values()];
+  const maxL=Math.max(...cells.map(c=>c.l));
+  // Waterval: van de hoogste laag steeds naar de laagste buur, tot aan het strand
+  const fallPath=[];{let c=cells.filter(c=>c.l===maxL).sort(()=>R()-.5)[0];
+    while(c&&c.l>0&&fallPath.length<14){fallPath.push(c);const ns=N4.map(([dx,dz])=>C.get(key(c.x+dx,c.z+dz))).filter(n=>n&&n.l<=c.l&&!fallPath.includes(n));
+      if(!ns.length)break;const minL=Math.min(...ns.map(n=>n.l));const lower=ns.filter(n=>n.l===minL);c=lower[Math.floor(R()*lower.length)];}
+    if(c&&!fallPath.includes(c))fallPath.push(c);}
+  for(const c of fallPath.slice(1))c.water=true;
+  // Terrein: rotskolom + grasdak, als 'instanced' blokken (snel, ook op telefoons)
+  const rock=new THREE.InstancedMesh(geoBox,new THREE.MeshLambertMaterial({flatShading:true}),cells.length);
+  const cap=new THREE.InstancedMesh(geoBox,new THREE.MeshLambertMaterial({flatShading:true}),cells.length);
+  const m4=new THREE.Matrix4(),col=new THREE.Color();
+  cells.forEach((c,i)=>{const top=TOP(c.l);c.i=i;
+    m4.makeScale(1,top-.12+3,1);m4.setPosition(c.x+.5,(top-.12-3)/2,c.z+.5);rock.setMatrixAt(i,m4);
+    col.set(c.l===0?THEME.sandSide:THEME.rock[(c.x*7+c.z*13+c.l)&1?0:(c.l%3)]);col.offsetHSL(0,0,(R()-.5)*.04);rock.setColorAt(i,col);
+    m4.makeScale(1,.12,1);m4.setPosition(c.x+.5,top-.06,c.z+.5);cap.setMatrixAt(i,m4);
+    col.set(c.water?'#5cc6e4':c.l===0?THEME.sand:THEME.grass[Math.floor(R()*3)]);if(!c.water)col.offsetHSL(0,0,(R()-.5)*.05);cap.setColorAt(i,col);
+    c.col=col.clone();});
+  g.add(rock,cap);solids.push(rock,cap);
+  // Watervallen tussen de lagen en een beekje erover
+  const fallTex=(()=>{const cv=document.createElement('canvas');cv.width=16;cv.height=64;const x=cv.getContext('2d');x.fillStyle='#8fdcf2';x.fillRect(0,0,16,64);
+    for(let i=0;i<9;i++){x.fillStyle=`rgba(255,255,255,${.35+Math.random()*.4})`;x.fillRect(Math.random()*14,Math.random()*64,2,10+Math.random()*12);}
+    const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;})();
+  const fallMat=new THREE.MeshLambertMaterial({map:fallTex,transparent:true,opacity:.9,emissive:'#3aa5c8',emissiveIntensity:.25});
+  for(let i=0;i<fallPath.length-1;i++){const a=fallPath[i],b=fallPath[i+1];const ta=TOP(a.l),tb=TOP(b.l);
+    if(ta>tb+.1){const m=new THREE.Mesh(geoBox,fallMat);const dx=b.x-a.x,dz=b.z-a.z;
+      m.scale.set(dx?.08:.6,ta-tb+.02,dz?.08:.6);m.position.set(a.x+.5+dx*.52,(ta+tb)/2,a.z+.5+dz*.52);g.add(m);
+      const foam=B(g,.75,.06,.75,'#eaf9ff',b.x+.5,tb-.02,b.z+.5);foam.material=new THREE.MeshLambertMaterial({color:'#eefbff',transparent:true,opacity:.8});thin(foam);}}
+  // Versiering
+  const occupy=(c,what)=>{c.occ=what;};
+  const free=c=>!c.occ&&!c.water;
+  function pine(x,y,z,s){const t=new THREE.Group();t.position.set(x,y,z);t.scale.setScalar(s);
+    B(t,.16,.35,.16,'#6b4a33',0,0,0);B(t,.7,.32,.7,'#2f7a46',0,.3,0);B(t,.52,.3,.52,'#358a4e',0,.58,0);B(t,.34,.28,.34,'#3e9a57',0,.84,0);B(t,.14,.18,.14,'#46a862',0,1.08,0);g.add(t);return t;}
+  function bush(x,y,z){B(g,.42,.28,.38,pick(['#4f9e45','#5aad4d','#469240']),x,y,z);}
+  function stone(x,y,z){const s=.25+R()*.3;B(g,s,s*.6,s*.8,pick(['#a3a6ad','#8f939b']),x,y,z).rotation.y=R()*3;}
+  function flowers(c){const y=TOP(c.l);for(let i=0;i<4;i++)thin(B(g,.07,.07,.07,pick(['#ff8fb1','#ffe07a','#ffffff','#c9a0ff']),c.x+.15+R()*.7,y,c.z+.15+R()*.7));}
+  function hut(c){const h=new THREE.Group();h.position.set(c.x+.5,TOP(c.l),c.z+.5);h.rotation.y=Math.floor(R()*4)*Math.PI/2;
+    B(h,.78,.5,.7,'#a5704a',0,0,0);for(let i=0;i<3;i++)B(h,.79,.03,.71,'#8a5a36',0,.1+i*.14,0);
+    B(h,.24,.34,.03,'#6b4a33',0,0,.36);B(h,.9,.08,.82,'#4f7f5c',0,.5,0);B(h,.7,.08,.62,'#5f8f6a',0,.58,0);B(h,.46,.08,.4,'#4f7f5c',0,.66,0);
+    g.add(h);occupy(c,'hut');}
+  function hay(c){B(g,.36,.28,.36,'#e8c75a',c.x+.3+R()*.4,TOP(c.l),c.z+.3+R()*.4);}
+  function fenceEdge(c){for(const[dx,dz]of N4){const n=C.get(key(c.x+dx,c.z+dz));if(!n||n.l>=c.l||R()>.5)continue;const y=TOP(c.l);
+      const px=c.x+.5+dx*.44,pz=c.z+.5+dz*.44;const along=dx!==0;
+      thin(B(g,along?.05:.9,.06,along?.9:.05,'#9a6b42',px,y+.18,pz));thin(B(g,along?.05:.9,.06,along?.9:.05,'#9a6b42',px,y+.32,pz));
+      for(const o of[-.4,0,.4])thin(B(g,.07,.42,.07,'#7a5536',px+(along?0:o),y,pz+(along?o:0)));}}
+  function windmill(c){const w=new THREE.Group();w.position.set(c.x+.5,TOP(c.l),c.z+.5);B(w,.4,1.1,.4,'#efe6d6',0,0,0);B(w,.5,.25,.5,'#c4663f',0,1.1,0);
+    const r=new THREE.Group();r.position.set(0,.95,.26);w.add(r);for(let i=0;i<4;i++){const b=B(r,.09,.75,.03,'#fff8ec',0,0,0);b.position.set(0,0,0);b.geometry=geoBox;
+      const arm=new THREE.Group();arm.rotation.z=i*Math.PI/2;r.add(arm);arm.add(b);b.position.set(0,.38,0);}
+    w.userData.spin=r;g.add(w);occupy(c,'mill');world_spin.push(r);}
+  const world_spin=[];
+  // trappen tussen lagen (sommige)
+  function stairs(lo,hi){const y0=TOP(lo.l),y1=TOP(hi.l),dx=hi.x-lo.x,dz=hi.z-lo.z;
+    for(let i=0;i<4;i++){const h=(y1-y0)*(i+1)/4;B(g,dx?.24:.7,h,dz?.24:.7,'#9aa0a6',lo.x+.5+dx*(.37-i*.24)*-1+dx*.0,y0-.02,lo.z+.5+dz*(.37-i*.24)*-1);}
+    occupy(lo,'stairs');}
+  const byL=l=>cells.filter(c=>c.l===l&&free(c));
+  // hut(ten) en molen bovenop
+  {const tops=byL(maxL).sort(()=>R()-.5);if(tops[0])hut(tops[0]);if(tops[3])windmill(tops[3]);}
+  // trappen
+  for(let l=0;l<maxL;l++){const opts=[];for(const c of byL(l))for(const[dx,dz]of N4){const n=C.get(key(c.x+dx,c.z+dz));if(n&&n.l===l+1&&!n.water)opts.push([c,n]);}
+    opts.sort(()=>R()-.5);let n=0;for(const[a,b]of opts){if(n>=2)break;if(!free(a))continue;stairs(a,b);n++;}}
+  for(const c of cells){if(!free(c))continue;const y=TOP(c.l),r=R();
+    if(c.l===0){if(r<.06){stone(c.x+.5,y,c.z+.5);occupy(c,'stone');}continue;}
+    if(r<.17){pine(c.x+.5+(R()-.5)*.2,y,c.z+.5+(R()-.5)*.2,.8+R()*.5);occupy(c,'tree');}
+    else if(r<.22){bush(c.x+.5,y,c.z+.5);occupy(c,'bush');}
+    else if(r<.25){stone(c.x+.5,y,c.z+.5);occupy(c,'stone');}
+    else if(r<.3)hay(c);
+    else if(r<.37)flowers(c);
+    if(!c.occ&&R()<.16)fenceEdge(c);}
+  // steiger + bootje aan het strand
+  {const beach=cells.filter(c=>c.l===0&&free(c));const opts=[];for(const c of beach)for(const[dx,dz]of N4)if(!C.get(key(c.x+dx,c.z+dz)))opts.push([c,dx,dz]);
+    const o=opts[Math.floor(R()*opts.length)];if(o){const[c,dx,dz]=o;for(let i=0;i<4;i++){B(g,dx?.5:.9,.08,dz?.5:.9,i%2?'#b88a5a':'#c79a68',c.x+.5+dx*(.5+i*.5),.32,c.z+.5+dz*(.5+i*.5));}
+      for(const s of[-.38,.38])B(g,.1,.9,.1,'#7a5536',c.x+.5+dx*2.1+(dz?s:0),-.5,c.z+.5+dz*2.1+(dx?s:0));
+      const boat=new THREE.Group();boat.position.set(c.x+.5+dx*2.3+dz*1.1,.02,c.z+.5+dz*2.3+dx*1.1);boat.rotation.y=dx?0:Math.PI/2;
+      B(boat,.5,.18,1.1,'#d9473b',0,0,0);B(boat,.4,.06,1,'#f3e9d8',0,.14,0);g.add(boat);world_boat=boat;}}
+  // rotsjes in zee
+  for(let i=0;i<4;i++){const a=R()*Math.PI*2,r=12.5+R()*3.5;const s=.5+R()*.7;B(g,s,s*.9,s*.8,'#8f939b',Math.cos(a)*r,-.4,Math.sin(a)*r).rotation.y=R()*3;}
+  world={g,C,cells,maxL,R,fallTex,spin:world_spin};
+  return world;}
+let world_boat=null;
+
+/* ---------------- SCHAPEN (instanced: één tekenopdracht per onderdeel) ---------------- */
+const MAXS=140,SC=.6;   // SC: grootte van een schaap
+const PARTS={};
+function part(name,w,h,d,x,y,z,count=1,mat){const im=new THREE.InstancedMesh(geoBox,mat||new THREE.MeshLambertMaterial({flatShading:true}),MAXS*count);
+  im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);im.frustumCulled=false;const loc=[];
+  for(let i=0;i<count;i++){const m=new THREE.Matrix4().makeScale(w,h,d);m.setPosition(x[i]!=null?x[i]:x,y[i]!=null?y[i]:y,z[i]!=null?z[i]:z);loc.push(m);}
+  for(let i=0;i<MAXS*count;i++)im.setColorAt(i,new THREE.Color('#ffffff'));
+  PARTS[name]={im,loc,count};scene.add(im);return PARTS[name];}
+const arr=(...a)=>a;
+// lichaam staat naar +z
+part('body',.52,.36,.64,0,.22,0);
+part('head',.27,.27,.27,0,.42,.36);
+part('ears',.46,.06,.1,0,.6,.33);
+part('eyes',.05,.05,.02,arr(-.07,.07),.55,.5,2);
+part('legs',.09,.24,.09,arr(-.15,.15,-.15,.15),0,arr(.2,.2,-.2,-.2),4);
+part('tail',.1,.1,.1,0,.42,-.34);
+part('capC',.27,.09,.27,0,.69,.36);                 // pet of strohoed: kapje
+part('capV',.22,.03,.14,0,.69,.54);                 // klep van de pet
+part('brim',.44,.03,.44,0,.68,.36);                 // rand van strohoed / hoge hoed
+part('topC',.2,.24,.2,0,.71,.36);                   // hoge hoed
+part('scarf',.34,.1,.22,0,.38,.29);
+part('scarfT',.08,.2,.04,.1,.2,.42);
+part('bell',.09,.09,.09,0,.27,.5);
+part('glass',.3,.06,.03,0,.53,.51);
+part('crown',.07,.07,.07,arr(-.13,.13,-.13,.13,0),.68,arr(.24,.24,.48,.48,.5),5);
+part('bag',.28,.2,.18,0,.58,-.1);
+const shMesh=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:shadowTex,transparent:true,depthWrite:false}),MAXS);
+shMesh.frustumCulled=false;shMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(shMesh);
+const ZERO=new THREE.Matrix4().makeScale(0,0,0);
+let sheep=[];
+function wpick(R,list){let t=0;for(const[,w]of list)t+=w;let r=R()*t;for(const[v,w]of list){r-=w;if(r<=0)return v;}return list[0][0];}
+function paintSheep(s){const i=s.i;const c=new THREE.Color();
+  const wool=s.wool==='black'?'#3b3536':'#f5f2ea',face=s.wool==='black'?'#231d1c':'#3e322d';
+  PARTS.body.im.setColorAt(i,c.set(wool));PARTS.tail.im.setColorAt(i,c.set(wool));PARTS.head.im.setColorAt(i,c.set(face));PARTS.ears.im.setColorAt(i,c.set(face));
+  for(let k=0;k<4;k++)PARTS.legs.im.setColorAt(i*4+k,c.set(face));for(let k=0;k<2;k++)PARTS.eyes.im.setColorAt(i*2+k,c.set('#ffffff'));
+  if(s.hat){const h=HATS[s.hat];PARTS.capC.im.setColorAt(i,c.set(h.c));PARTS.capV.im.setColorAt(i,c.set(h.c));PARTS.brim.im.setColorAt(i,c.set(s.hat==='top'?'#2b2b33':h.c));PARTS.topC.im.setColorAt(i,c.set('#2b2b33'));}
+  if(s.neck){const n=NECKS[s.neck];PARTS.scarf.im.setColorAt(i,c.set(n.c));PARTS.scarfT.im.setColorAt(i,c.set(n.c));PARTS.bell.im.setColorAt(i,c.set('#f0b429'));}
+  PARTS.glass.im.setColorAt(i,c.set('#1d1d24'));PARTS.bag.im.setColorAt(i,c.set(EXTRAS.bag.c));
+  for(let k=0;k<5;k++)PARTS.crown.im.setColorAt(i*5+k,c.set(['#ff7fb0','#ffe066','#ffffff','#c99bff','#ff9b6b'][k]));
+  for(const p of Object.values(PARTS))if(p.im.instanceColor)p.im.instanceColor.needsUpdate=true;}
+const has=(s,name)=>{switch(name){case 'capC':return s.hat&&s.hat!=='top';case 'capV':return s.hat==='red'||s.hat==='blue'||s.hat==='green';
+  case 'brim':return s.hat==='straw'||s.hat==='top';case 'topC':return s.hat==='top';case 'scarf':case 'scarfT':return s.neck&&s.neck!=='bell';
+  case 'bell':return s.neck==='bell';case 'glass':return s.extra==='glasses';case 'crown':return s.extra==='crown'&&s.hat!=='top';case 'bag':return s.extra==='bag';}return true;};
+
+function spawnSheep(R){
+  const walk=world.cells.filter(c=>!c.occ&&!c.water);
+  const n=Math.min(MAXS,Math.round(walk.length*.42)+16);
+  const perCell=new Map();sheep=[];
+  for(let i=0;i<n;i++){let c;for(let t=0;t<20;t++){c=walk[Math.floor(R()*walk.length)];if((perCell.get(c.k)||0)<2)break;}
+    perCell.set(c.k,(perCell.get(c.k)||0)+1);
+    const s={i,cell:c,x:c.x+.2+R()*.6,z:c.z+.2+R()*.6,y:TOP(c.l),rot:R()*Math.PI*2,
+      hat:wpick(R,POOL.hat),neck:wpick(R,POOL.neck),extra:wpick(R,POOL.extra),wool:wpick(R,POOL.wool),act:R()<.14?'sleep':'walk',
+      t:R()*4,tx:0,tz:0,moving:false,ph:R()*9,hop:0,found:false};
+    s.tx=s.x;s.tz=s.z;sheep.push(s);}
+  return sheep;}
+
+/* ---------------- ZOEKTOCHTEN ---------------- */
+const KEYS=['hat','neck','extra'];
+const matches=(s,spec)=>Object.entries(spec).every(([k,v])=>s[k]===v);
+function describe(spec){const parts=[];
+  for(const k of KEYS)if(spec[k])parts.push(LABEL[k][spec[k]].t);
+  let t='Vind het '+(spec.wool==='black'?'zwarte ':'')+THEME.animal;
+  if(parts.length)t+=' met '+(parts.length>1?parts.slice(0,-1).join(', ')+' en '+parts.at(-1):parts[0]);
+  if(spec.act==='sleep')t+=(parts.length?' dat':' dat')+' ligt te slapen';
+  return t;}
+function chips(spec){const out=[];if(spec.wool==='black')out.push({e:'🐑',c:'#3b3536'});
+  for(const k of KEYS)if(spec[k]){const L=LABEL[k][spec[k]];out.push({e:L.e,c:(spec[k]==='red'||spec[k]==='blue'||spec[k]==='green'||spec[k]==='yellow')?L.c:null});}
+  if(spec.act==='sleep')out.push({e:'💤'});return out;}
+// Drie opdrachten: 1 kenmerk (uniek), 2 kenmerken, 3 kenmerken (of 2 + slapen). Er is altijd precies één goed schaap.
+function makeRounds(R){
+  const unique=[{wool:'black'},{hat:'top'},{neck:'bell'},{extra:'bag'}][Math.floor(R()*4)];
+  const uk=Object.keys(unique)[0],uv=unique[uk];
+  const rnd=(list,ex)=>{const l=list.filter(([v])=>v&&v!==ex&&!(uk&&POOL[uk]===list&&v===uv));return l[Math.floor(R()*l.length)][0];};
+  const takeTarget=used=>{let s;do{s=sheep[Math.floor(R()*sheep.length)];}while(used.includes(s)||s.cell.l===0&&R()<.6);return s;};
+  const rounds=[];const targets=[];
+  // 1
+  const t1=takeTarget(targets);for(const s of sheep)if(s!==t1&&s[uk]===uv)s[uk]=uk==='wool'?'white':'';t1[uk]=uv;targets.push(t1);rounds.push({spec:{...unique},target:t1});
+  // 2 en 3
+  const valid=v=>!(v===uv);
+  for(const n of [2,3]){const t=takeTarget(targets);let keys=[...KEYS].sort(()=>R()-.5).slice(0,n===2?2:(R()<.5?3:2));
+    const spec={};for(const k of keys){let v=t[k];if(!v||!valid(v)||(k===uk&&v===uv))v=rnd(POOL[k].filter(([x])=>!(k===uk&&x===uv)));t[k]=v;spec[k]=v;}
+    if(n===3&&keys.length===2){spec.act='sleep';t.act='sleep';}
+    else if(t.act==='sleep'&&n===2)t.act='walk';
+    targets.push(t);rounds.push({spec,target:t});}
+  // Lokkertjes: genoeg schapen met een deel van de kenmerken
+  for(const r of rounds.slice(1)){for(const[k,v]of Object.entries(r.spec)){if(k==='act')continue;
+      let cnt=sheep.filter(s=>s[k]===v).length;let guard=0;while(cnt<6&&guard++<40){const s=sheep[Math.floor(R()*sheep.length)];if(targets.includes(s)||s[k]===v)continue;s[k]=v;cnt++;}}}
+  // Precies één goed schaap per opdracht (niet de doelwitten zelf aanpassen)
+  const reroll=(s,k,avoid)=>{if(k==='act')s.act='walk';else if(k==='wool')s.wool='white';else{const opts=POOL[k].filter(([x])=>x!==avoid&&!(k===uk&&x===uv));s[k]=opts[Math.floor(R()*opts.length)][0];}};
+  for(let loop=0;loop<60;loop++){let clean=true;
+    for(const r of rounds){for(const s of sheep){if(s===r.target||!matches(s,r.spec))continue;clean=false;
+        const own=rounds.find(o=>o.target===s);
+        if(own){const ks=Object.keys(r.spec).filter(k=>own.spec[k]!==r.spec[k]);if(ks.length)reroll(s,ks[Math.floor(R()*ks.length)],r.spec[ks[0]]);
+          else{const k=Object.keys(r.spec).filter(k=>k!=='act'&&k!==uk)[0];if(!k)continue;const v=rnd(POOL[k].filter(([x])=>x!==r.spec[k]&&!(k===uk&&x===uv)));r.spec[k]=v;r.target[k]=v;}continue;}
+        const ks=Object.keys(r.spec);const k=ks[Math.floor(R()*ks.length)];
+        if(k==='act')s.act='walk';else if(k==='wool')s.wool='white';else{const opts=POOL[k].filter(([x])=>x!==r.spec[k]&&!(k===uk&&x===uv));s[k]=opts[Math.floor(R()*opts.length)][0];}}}
+    if(clean)break;}
+  for(const r of rounds){r.text=describe(r.spec);r.chips=chips(r.spec);}
+  return rounds;}
+
+/* ---------------- CAMERA ---------------- */
+const view={yaw:.75,pitch:.72,dist:30,tx:0,ty:1.6,tz:0};
+let minDist=5,maxDist=70,autoSpin=0;
+function fitDist(){const a=innerWidth/innerHeight;const vf=cam.fov*Math.PI/180;const hf=2*Math.atan(Math.tan(vf/2)*a);
+  const need=Math.max(12.5/Math.tan(hf/2)*(a<.8?.86:1),12.5/Math.tan(vf/2));return clamp(need,16,70);}
+function updateCam(){const cp=Math.cos(view.pitch),sp=Math.sin(view.pitch);
+  cam.position.set(view.tx+Math.sin(view.yaw)*cp*view.dist,view.ty+sp*view.dist,view.tz+Math.cos(view.yaw)*cp*view.dist);cam.lookAt(view.tx,view.ty,view.tz);}
+function resize(){renderer.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();maxDist=fitDist()*1.25;view.dist=Math.min(view.dist,maxDist);updateCam();}
+addEventListener('resize',resize);
+function homeView(){view.tx=0;view.tz=0;view.ty=1.6;view.dist=fitDist();view.pitch=.72;updateCam();}
+
+/* ---------------- BEDIENING ---------------- */
+const ptrs=new Map();let down=null,moved=false,pinch=null;
+canvas.addEventListener('pointerdown',e=>{initAudio();canvas.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});autoSpin=0;
+  if(ptrs.size===1){down={x:e.clientX,y:e.clientY,t:performance.now()};moved=false;}
+  else if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),dist:view.dist,mx:(a.x+b.x)/2,my:(a.y+b.y)/2};moved=true;}});
+canvas.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return;const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;
+  if(ptrs.size===1){if(Math.hypot(e.clientX-down.x,e.clientY-down.y)>9)moved=true;
+    if(moved){view.yaw-=dx*.0085;view.pitch=clamp(view.pitch+dy*.005,.3,1.3);updateCam();}}
+  else if(ptrs.size===2&&pinch){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);view.dist=clamp(pinch.dist*pinch.d/Math.max(d,1),minDist,maxDist);
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;panBy(mx-pinch.mx,my-pinch.my);pinch.mx=mx;pinch.my=my;updateCam();}});
+const endPtr=e=>{if(!ptrs.has(e.pointerId))return;if(ptrs.size===1&&!moved&&e.type==='pointerup')tap(e.clientX,e.clientY);ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;};
+canvas.addEventListener('pointerup',endPtr);canvas.addEventListener('pointercancel',endPtr);
+canvas.addEventListener('wheel',e=>{e.preventDefault();view.dist=clamp(view.dist*(1+Math.sign(e.deltaY)*.1),minDist,maxDist);updateCam();},{passive:false});
+// Verschuiven (twee vingers, of rechtermuisknop/shift op de computer)
+function panBy(dx,dy){const k=view.dist/innerHeight*.9;const rx=Math.cos(view.yaw),rz=-Math.sin(view.yaw);const fx=-Math.sin(view.yaw),fz=-Math.cos(view.yaw);
+  view.tx=clamp(view.tx-dx*k*rx+dy*k*fx,-11,11);view.tz=clamp(view.tz-dx*k*rz+dy*k*fz,-11,11);}
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+$('#zIn').onclick=()=>{view.dist=clamp(view.dist*.78,minDist,maxDist);updateCam();};
+$('#zOut').onclick=()=>{view.dist=clamp(view.dist*1.28,minDist,maxDist);updateCam();};
+$('#zAll').onclick=()=>{homeView();};
+
+// Welk schaap tik je aan? Het dichtstbijzijnde op het scherm dat niet achter de berg of een boom staat.
+const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),v3=new THREE.Vector3();
+function sheepAt(x,y){let best=null,bd=1e9;
+  const pxPerUnit=innerHeight/(2*Math.tan(cam.fov*Math.PI/360));
+  for(const s of sheep){if(s.found)continue;   // al gevonden schapen tellen niet meer mee
+    v3.set(s.x,s.y+(.4+s.hop)*SC,s.z);const dist=v3.distanceTo(cam.position);v3.project(cam);if(v3.z>1)continue;
+    const sx=(v3.x+1)/2*innerWidth,sy=(1-v3.y)/2*innerHeight;const r=Math.max(20,.42*pxPerUnit/dist);const d=Math.hypot(sx-x,sy-y);
+    if(d>r)continue;const score=d/r+dist*.004;if(score<bd&&visible(s)){bd=score;best=s;}}
+  return best;}
+// Zichtbaar als je de rug of het kopje kunt zien (bloemetjes en hekjes tellen niet als 'ervoor').
+const hp=new THREE.Vector3(),dir=new THREE.Vector3();
+function visible(s){const sl=s.act==='sleep'?-.2:0;
+  for(const [ox,oy,oz] of [[0,.62+sl,-.05],[0,.55+sl,.38],[0,.45+sl,-.25]]){
+    hp.set(ox,oy,oz).applyAxisAngle(up,s.rot).multiplyScalar(SC).add(v3b.set(s.x,s.y+s.hop*SC,s.z));
+    dir.copy(hp).sub(cam.position);const len=dir.length();dir.normalize();ray.set(cam.position,dir);ray.far=len-.2;
+    if(!ray.intersectObjects(world?[world.g]:[],true).length)return true;}
+  return false;}
+const v3b=new THREE.Vector3();
+function tap(x,y){const s=game.playing?sheepAt(x,y):null;window.__lastTap={x,y,playing:game.playing,got:s&&s.i};if(!s)return;
+  const r=game.rounds[game.r];
+  if(s===r.target)found(s);else wrong(s,x,y);}
+
+/* ---------------- SPEL ---------------- */
+const game={playing:false,practice:false,r:0,rounds:[],t:0,times:[],wrong:0,hints:0,hintR:0,key:'',num:0,seed:0};
+const fmt=ms=>{const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+pad(s%60);};
+function setup(practice){
+  game.practice=practice;game.key=dayKey();game.num=dayNum(game.key);
+  game.seed=practice?(Math.random()*4294967296)>>>0:hashStr('islespy-'+game.key);
+  const R=mulberry(game.seed);
+  buildWorld(game.seed);
+  const R2=mulberry(game.seed^0x9e3779b9);
+  spawnSheep(R2);game.rounds=makeRounds(R2);
+  for(const s of sheep)paintSheep(s);
+  for(const p of Object.values(PARTS))for(let i=sheep.length*p.count;i<MAXS*p.count;i++)p.im.setMatrixAt(i,ZERO);
+  for(const st of stars)scene.remove(st.sp);stars.length=0;game.over=false;
+  game.r=0;game.t=0;game.times=[];game.wrong=0;game.hints=0;game.hintR=0;
+  // doorgaan waar je was gebleven (alleen de dagpuzzel)
+  if(!practice){const d=D.days[game.key];if(d&&!d.done){game.r=d.r||0;game.times=d.times||[];game.t=d.t||0;game.wrong=d.w||0;game.hints=d.h||0;
+      for(let i=0;i<game.r;i++){const t=game.rounds[i].target;t.found=true;t.star=1;starFor(t);}}}
+  renderSteps();}
+function saveProgress(){if(game.practice||game.over||game.r>=3||(D.days[game.key]&&D.days[game.key].done))return;D.days[game.key]={...(D.days[game.key]||{}),r:game.r,times:game.times,t:game.t,w:game.wrong,h:game.hints,done:false};store();}
+function showQuest(){const r=game.rounds[game.r];$('#quest').classList.add('out');
+  setTimeout(()=>{$('#qText').textContent=r.text+'.';$('#qChips').innerHTML=r.chips.map(c=>`<span class="chip">${c.e}${c.c?`<i style="background:${c.c}"></i>`:''}</span>`).join('');
+    $('#quest').classList.remove('out');},game.r?250:0);
+  game.hintR=0;$('#hintBtn').disabled=false;renderSteps();}
+function renderSteps(){$('#stepT').textContent=game.r>=3?'Klaar!':`Zoektocht ${game.r+1}/3`;document.querySelectorAll('#steps .dot').forEach((d,i)=>{d.className='dot'+(i<game.r?' ok':i===game.r&&game.playing?' on':'');});}
+function start(){$('#card').classList.add('off');game.playing=true;game.over=false;$('#hintBtn').innerHTML='💡 Hint <small>+20 s</small>';showQuest();lastT=performance.now();
+  if(!D.introSeen){D.introSeen=1;store();toast('Sleep om het eiland te draaien, knijp of scroll om te zoomen');}}
+function found(s){s.found=true;s.hop=0;s.jump=1;game.playing=false;game.times.push(game.t);game.t=0;
+  sfx.yes();buzz(20);burstAt(s);const t=game.times.at(-1);
+  floaty(s,`🎉 Gevonden! <b>${fmt(t)}</b>`,'good');
+  game.r++;renderSteps();
+  if(game.r>=3){setTimeout(finish,1400);if(!game.practice){saveProgress();}return;}
+  saveProgress();setTimeout(()=>{game.playing=true;lastT=performance.now();showQuest();},1500);}
+function wrong(s,x,y){game.wrong++;game.t+=10000;sfx.no();buzz([10,40,10]);s.jump=.6;
+  const what=[s.wool==='black'?'zwart':'',...KEYS.map(k=>s[k]?LABEL[k][s[k]].t.replace(/^(de|het) /,''):''),s.act==='sleep'?'slaapt':''].filter(Boolean);
+  floaty(s,`Niet deze${what.length?': '+what.join(', '):''} <b>+10 s</b>`,'bad');
+  const tm=$('#timer');tm.classList.remove('pen');void tm.offsetWidth;tm.classList.add('pen');saveProgress();}
+function hint(){if(!game.playing||game.hintR>=2)return;game.hintR++;game.hints++;game.t+=20000;sfx.hint();
+  const t=game.rounds[game.r].target;const L=t.cell.l,maxL=world.maxL;
+  if(game.hintR===1){toast(L===0?'💡 Hij staat op het strand':`💡 Hij staat op laag ${L} van ${maxL} (van onder af geteld)`);flash(c=>c.l===L);}
+  else{toast('💡 Hij staat in het oplichtende stukje');flash(c=>c.l===L&&Math.hypot(c.x-t.cell.x,c.z-t.cell.z)<=2.5);$('#hintBtn').disabled=true;}
+  const tm=$('#timer');tm.classList.remove('pen');void tm.offsetWidth;tm.classList.add('pen');saveProgress();}
+$('#hintBtn').onclick=()=>{initAudio();if(game.over){showResult(game.res);return;}hint();};
+let flashT=0,flashSel=null;
+function flash(sel){flashSel=sel;flashT=4.5;}
+function finish(){const total=game.times.reduce((a,b)=>a+b,0);
+  if(!game.practice&&!(D.days[game.key]&&D.days[game.key].done)){
+    D.played=(D.played||0)+1;D.streak=D.last===prevKey(game.key)?(D.streak||0)+1:1;D.last=game.key;D.best=Math.max(D.best||0,D.streak);
+    D.days[game.key]={done:true,times:game.times,w:game.wrong,h:game.hints,total};
+    // oude dagen opruimen (alleen de laatste 60 bewaren)
+    const ks=Object.keys(D.days).sort();while(ks.length>60)delete D.days[ks.shift()];
+    store();}
+  showResult(game.practice?{times:game.times,w:game.wrong,h:game.hints,total}:D.days[game.key]);sfx.done();}
+const squares=times=>times.map(t=>t<30000?'🟩':t<90000?'🟨':'🟧').join('');
+function shareText(d){const url='https://www.gloopie.nl/xl/isle-spy';
+  return `Isle Spy #${game.num} ${THEME.e}\n${squares(d.times)} ${fmt(d.total)}${d.w?` · ${d.w}× mis`:''}${d.h?` · 💡${d.h}`:''}\n🔥 ${D.streak} ${D.streak===1?'dag':'dagen'} op rij\n${url}`;}
+function untilTomorrow(){const n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1);const ms=t-n;const h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4);return `${h} uur en ${m} min`;}
+function showResult(d){game.playing=false;game.over=true;game.res=d;$('#hintBtn').innerHTML='🏁 Uitslag';$('#hintBtn').disabled=false;renderSteps();$('#quest').classList.add('out');
+  const box=$('#cardBox');
+  box.innerHTML=`<div class="mascot">${THEME.e}</div><h1>${game.practice?'Extra eiland':'Gevonden!'}</h1>
+    <p class="sub">${game.practice?'Oefenen telt niet mee voor je reeks':`Isle Spy #${game.num} · ${THEME.name}`}</p>
+    <div class="squares" aria-label="Tijd per zoektocht">${squares(d.times)}</div>
+    <div class="stats"><div class="stat"><b>${fmt(d.total)}</b><span>totale tijd</span></div>
+      <div class="stat"><b>${d.w||0}</b><span>mis getikt</span></div>
+      ${game.practice?'':`<div class="stat"><b>🔥 ${D.streak}</b><span>${D.streak===1?'dag':'dagen'} op rij</span></div>`}</div>
+    ${game.practice?'':'<button class="big" id="share">Deel je resultaat</button>'}
+    <button class="big plain" id="again">Speel een extra eiland</button>
+    <button class="big plain" id="look">Rondkijken op dit eiland</button>
+    ${game.practice?'':`<p class="next">Morgen een nieuw eiland, over ${untilTomorrow()}</p>`}`;
+  $('#card').classList.remove('off');
+  const sh=$('#share');if(sh)sh.onclick=async()=>{const txt=shareText(d);
+    try{if(navigator.share){await navigator.share({text:txt});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+    try{await navigator.clipboard.writeText(txt);toast('Gekopieerd! Plak het in een chat 📋');}catch(e){toast('Kopiëren lukte niet');}};
+  $('#again').onclick=()=>{setup(true);homeView();autoSpin=0;start();};
+  $('#look').onclick=()=>{$('#card').classList.add('off');toast('Rondkijken. Tik op 🏝️ om terug te gaan');};
+  // na rondkijken: knop om de uitslag terug te zien
+}
+function intro(){const d=D.days[game.key];const box=$('#cardBox');
+  if(d&&d.done){game.r=3;showResult(d);return;}
+  const resume=d&&d.r>0;
+  box.innerHTML=`<div class="mascot">${THEME.e}🔎</div><h1>Isle <span>Spy</span></h1><p class="sub">#${game.num} · ${THEME.name} · ${new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long'})}</p>
+    <p>Elke dag een nieuw eiland vol ${THEME.animals}. Vind er drie, zo snel als je kunt.</p>
+    <ul><li><b>Sleep</b> om het eiland te draaien, <b>knijp</b> of scroll om te zoomen.</li><li><b>Tik</b> op het ${THEME.animal} uit de opdracht.</li><li>Mis getikt? <b>+10 seconden</b>. Een 💡 hint kost 20 seconden.</li></ul>
+    <button class="big" id="go">${resume?`Verder (zoektocht ${d.r+1} van 3)`:'Start'}</button>
+    ${D.streak&&D.last===prevKey(game.key)?`<p class="next">🔥 ${D.streak} ${D.streak===1?'dag':'dagen'} op rij. Ga zo door!</p>`:''}`;
+  $('#go').onclick=()=>{initAudio();start();};
+  autoSpin=.12;}
+
+/* ---------------- EFFECTEN ---------------- */
+const floatWrap=$('#floaties');
+function floaty(s,html,cls){const v=new THREE.Vector3(s.x,s.y+1,s.z).project(cam);const d=document.createElement('div');d.className='floaty '+(cls||'');d.innerHTML=html;
+  floatWrap.appendChild(d);const hw=d.offsetWidth/2+8;d.style.left=clamp((v.x+1)/2*innerWidth,hw,innerWidth-hw)+'px';d.style.top=clamp((1-v.y)/2*innerHeight,150,innerHeight-80)+'px';setTimeout(()=>d.remove(),1850);}
+const toastWrap=$('#toasts');
+function toast(msg){const last=toastWrap.lastElementChild;if(last&&last.textContent===msg)return;const d=document.createElement('div');d.className='toast';d.textContent=msg;toastWrap.appendChild(d);
+  while(toastWrap.children.length>2)toastWrap.firstChild.remove();setTimeout(()=>d.remove(),3050);}
+const parts=[];
+function burstAt(s){for(let i=0;i<26;i++){const m=new THREE.Mesh(geoBox,M(['#ffd166','#ff8fb1','#9fe07a','#8fd6ff','#ffffff'][i%5]));const sc=.05+Math.random()*.06;m.scale.setScalar(sc);
+  m.position.set(s.x,s.y+.6,s.z);m.userData={v:new THREE.Vector3((Math.random()-.5)*3,2+Math.random()*3,(Math.random()-.5)*3),life:1+Math.random()*.5,s:sc};scene.add(m);parts.push(m);}}
+// gouden ster boven gevonden schapen
+const starTex=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');g.font='48px serif';g.textAlign='center';g.textBaseline='middle';g.fillText('⭐',32,36);return new THREE.CanvasTexture(c);})();
+const stars=[];function starFor(s){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:starTex,depthTest:false,transparent:true}));sp.scale.set(.55,.55,.55);sp.renderOrder=10;scene.add(sp);stars.push({sp,s});}
+let AC=null;
+function initAudio(){if(AC){if(AC.state==='suspended')AC.resume();return;}try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+function tone(f,dur,type='sine',vol=.12,when=0,slide){if(!AC)return;const t=AC.currentTime+when;const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+  if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+dur);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0008,t+dur);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+dur+.05);}
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const sfx={yes(){[72,76,79,84].forEach((n,i)=>tone(mtof(n),.3,'triangle',.12,i*.07));},no(){tone(300,.18,'square',.05,0,200);tone(220,.22,'triangle',.08,.08,160);},
+  hint(){tone(mtof(81),.2,'sine',.08);tone(mtof(88),.3,'sine',.07,.08);},done(){[60,64,67,72,76,79].forEach((n,i)=>tone(mtof(n),1.2,'triangle',.08,i*.09));},
+  baa(){tone(320,.35,'sawtooth',.03,0,280);}};
+function buzz(ms){if(navigator.vibrate)try{navigator.vibrate(ms)}catch(e){}}
+
+/* ---------------- SPELLUS ---------------- */
+let lastT=performance.now(),clock=0,timerShown='';
+const mS=new THREE.Matrix4(),mT=new THREE.Matrix4(),q=new THREE.Quaternion(),up=new THREE.Vector3(0,1,0),one=new THREE.Vector3(SC,SC,SC),pos=new THREE.Vector3();
+function moveSheep(s,dt){
+  if(s.act==='sleep'||s.found&&s.jump<=0){return;}
+  s.t-=dt;
+  if(!s.moving&&s.t<=0){// nieuw doel: een plek op dezelfde laag, vlakbij
+    const c=s.cell;const opts=[c];for(const[dx,dz]of N4){const n=world.C.get(key(c.x+dx,c.z+dz));if(n&&n.l===c.l&&!n.occ&&!n.water)opts.push(n);}
+    const n=opts[Math.floor(Math.random()*opts.length)];s.cell=n;s.tx=n.x+.2+Math.random()*.6;s.tz=n.z+.2+Math.random()*.6;s.moving=true;}
+  if(s.moving){const dx=s.tx-s.x,dz=s.tz-s.z,d=Math.hypot(dx,dz);
+    if(d<.03){s.moving=false;s.t=2+Math.random()*6;return;}
+    const want=Math.atan2(dx,dz);let da=want-s.rot;da=Math.atan2(Math.sin(da),Math.cos(da));s.rot+=clamp(da,-dt*4,dt*4);
+    if(Math.abs(da)<.6){const st=Math.min(d,dt*.32);s.x+=dx/d*st;s.z+=dz/d*st;}}}
+function frame(now){const dt=Math.min(.1,(now-lastT)/1000);lastT=now;clock+=dt;
+  if(game.playing&&!document.hidden){game.t+=dt*1000;}
+  const tv='⏱ '+fmt(game.over&&game.res?game.res.total:game.times.reduce((a,b)=>a+b,0)+game.t);if(tv!==timerShown){$('#timer').textContent=tv;timerShown=tv;}
+  if(autoSpin){view.yaw+=dt*autoSpin;updateCam();}
+  // golven
+  const pa=seaGeo.attributes.position.array;for(let i=0;i<pa.length;i+=3){const x=seaBase[i],z=seaBase[i+2];pa[i+1]=Math.sin(x*.4+clock*1.1)*.07+Math.cos(z*.35+clock*.8)*.06;}
+  seaGeo.attributes.position.needsUpdate=true;seaGeo.computeVertexNormals();
+  if(world){world.fallTex.offset.y+=dt*1.4;for(const r of world.spin)r.rotation.z+=dt*.8;if(world_boat)world_boat.rotation.z=Math.sin(clock*1.3)*.06;
+    if(flashT>0){flashT-=dt;const k=.5+.5*Math.sin(clock*7);const cap=world.g.children[1];const c=new THREE.Color(),hl=new THREE.Color('#fff3a0');
+      for(const cell of world.cells){c.copy(cell.col);if(flashT>0&&flashSel(cell))c.lerp(hl,.25+.45*k);cap.setColorAt(cell.i,c);}cap.instanceColor.needsUpdate=true;}}
+  // schapen
+  for(const s of sheep){moveSheep(s,dt);s.ph+=dt;
+    if(s.jump>0){s.jump-=dt*1.6;s.hop=Math.max(0,Math.sin((1-Math.max(0,s.jump))*Math.PI*2))*.45*(s.found?1:.6);if(s.jump<=0){s.hop=0;if(s.found&&!s.star){s.star=1;starFor(s);}}}
+    const sleep=s.act==='sleep';const bob=s.moving?Math.abs(Math.sin(s.ph*9))*.04:sleep?Math.sin(s.ph*1.5)*.01:0;
+    q.setFromAxisAngle(up,s.rot);pos.set(s.x,s.y+((sleep?-.2:0)+bob+s.hop)*SC,s.z);mS.compose(pos,q,one);
+    for(const[name,p]of Object.entries(PARTS)){const on=has(s,name);
+      for(let k=0;k<p.count;k++){const idx=s.i*p.count+k;
+        if(!on||(sleep&&name==='legs')){p.im.setMatrixAt(idx,ZERO);continue;}
+        mT.multiplyMatrices(mS,p.loc[k]);
+        if(name==='legs'&&s.moving){const sw=Math.sin(s.ph*14+(k%2?Math.PI:0))*.05;mT.elements[14]+=0;mT.elements[13]+=Math.max(0,sw);}
+        if(name==='head'&&!s.moving&&!sleep){/* af en toe grazen */}
+        p.im.setMatrixAt(idx,mT);}}
+    mT.makeRotationX(-Math.PI/2);mT.scale(v3.set(.8*SC,.9*SC,1));mT.setPosition(s.x,s.y+.01,s.z);shMesh.setMatrixAt(s.i,mT);}
+  for(let i=sheep.length;i<MAXS;i++)shMesh.setMatrixAt(i,ZERO);
+  for(const p of Object.values(PARTS))p.im.instanceMatrix.needsUpdate=true;shMesh.instanceMatrix.needsUpdate=true;
+  for(const st of stars){st.sp.position.set(st.s.x,st.s.y+.85+Math.sin(clock*3)*.06,st.s.z);}
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i],u=p.userData;u.life-=dt;u.v.y-=7*dt;p.position.addScaledVector(u.v,dt);p.rotation.x+=dt*5;p.scale.setScalar(u.s*clamp(u.life*2,0,1));
+    if(u.life<=0){scene.remove(p);parts.splice(i,1);}}
+  if(game.playing&&Math.floor(clock*10)%50===0)saveProgress();
+  renderer.render(scene,cam);requestAnimationFrame(frame);}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveProgress();});
+addEventListener('pagehide',saveProgress);
+
+/* ---------------- START ---------------- */
+setup(false);resize();homeView();intro();
+requestAnimationFrame(frame);
+// Voor testen: kleine haak om het spel te bekijken.
+window.__spy={setup,KEYS,game,sheepAt,sheep:()=>sheep,world:()=>world,view,updateCam,scr:s=>{const v=new THREE.Vector3(s.x,s.y+.4*SC,s.z).project(cam);return[(v.x+1)/2*innerWidth,(1-v.y)/2*innerHeight];},visible,matches,D};
+})();
+
+/* Volledig scherm verlaten / terug (net als bij Little Farm Island) */
+(()=>{const b=document.getElementById('exitBtn');if(!b)return;
+  const inFrame=window.top!==window;let pd=null;try{pd=inFrame?parent.document:null;}catch(e){}
+  const fsEl=()=>pd&&(pd.fullscreenElement||pd.webkitFullscreenElement);
+  const upd=()=>{b.hidden=inFrame?!fsEl():false;b.setAttribute('aria-label',inFrame?'Volledig scherm sluiten':'Spel sluiten, terug naar de spelpagina');};
+  b.onclick=()=>{if(inFrame){const f=pd.exitFullscreen||pd.webkitExitFullscreen;if(f)f.call(pd);}else location.href='../';};
+  if(pd){pd.addEventListener('fullscreenchange',upd);pd.addEventListener('webkitfullscreenchange',upd);}
+  upd();})();
+</script>
+</body>
+</html>
