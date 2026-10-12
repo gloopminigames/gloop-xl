@@ -60,6 +60,10 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px}
 #tonic .new{background:#4fb39a;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px}
 #place{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 118px);z-index:6;display:none;gap:10px;align-items:center;padding:6px 6px 6px 16px;font-size:15px;white-space:nowrap}
 #place.on{display:flex}
+/* Altijd binnen beeld: tussen klok en zoomknoppen, lange tekst mag naar een tweede regel */
+#place{white-space:normal;max-width:min(620px,calc(100vw - 128px));width:max-content;line-height:1.2}
+#place button{flex:none;white-space:nowrap}
+@media (max-width:600px){#place{font-size:14px;padding:5px 5px 5px 12px;gap:8px}}
 #place button{background:var(--honey);border-radius:16px;padding:6px 14px;font-weight:700;box-shadow:0 3px 0 var(--honey-deep)}
 
 canvas#c{-webkit-touch-callout:none}
@@ -762,7 +766,7 @@ function useNow(id){if(toolBusy)return;initAudio();closeEdit();const td=TOOL[id]
 }
 let placedN=0;
 function startPlacing(id){placing=id;placedN=0;tool=null;closeShop();renderSeeds();document.body.classList.add('placing');document.body.classList.remove('seeding');
-  $('#placeTxt').textContent=`Tik op gras om te plaatsen: ${DEC[id].e} ${DEC[id].name} (${DEC[id].cost} per stuk)`;$('#placeDone').textContent='Klaar';$('#place').classList.add('on');}
+  $('#placeTxt').innerHTML=`${DEC[id].e} ${DEC[id].name}: tik op gras<span class="pt"> (${DEC[id].cost} per stuk)</span>`;$('#placeDone').textContent='Klaar';$('#place').classList.add('on');}
 /* ---- Bewerken: lang indrukken ---- */
 let editing=null,moving=null;
 const selRing=new THREE.Group();{const sm=new THREE.MeshBasicMaterial({color:'#ffd073',depthTest:false,transparent:true});
@@ -786,7 +790,7 @@ function removeDecor(t){const d=DEC[t.decor];const ref=Math.floor(d.cost/2);S.co
 $('#edit').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!editing)return;const t=editing,a=b.dataset.a;
   if(a==='turn'){t.rot=((t.rot||0)+1)%4;rebuildContent(t);popTile(t,.3);sfx.plant();save();return;}
   if(a==='move'){moving=t;closeEdit();showSel(t);document.body.classList.add('placing');
-    $('#placeTxt').textContent=`Tik op een lege tegel om te verplaatsen: ${DEC[t.decor].e} ${DEC[t.decor].name}`;$('#placeDone').textContent='Annuleer';$('#place').classList.add('on');return;}
+    $('#placeTxt').textContent=`${DEC[t.decor].e} Tik op een lege tegel`;$('#placeDone').textContent='Annuleer';$('#place').classList.add('on');return;}
   if(a==='remove')removeDecor(t);
   else if(a==='dig'){const cd=CROP[t.crop.id];t.crop=null;refreshTile(t);burst(tileWorld(t,.2),'#8a6242',12,1.4);toast(`${cd.e} ${cd.name} uitgegraven`);sfx.till();save();}
   else if(a==='till'){tillTile(t);}
@@ -812,7 +816,7 @@ function place(t){const d=DEC[placing];
   S.coins-=d.cost;t.type='grass';t.decor=d.id;t.rot=fenceRot(t);recountDecor();refreshTile(t);refreshNeighbors(t);popTile(t,.5);
   burst(tileWorld(t,.3),'#fff3c4',14,1.8);sfx.buy();floaty(tileWorld(t,1),`+${d.beauty} schoonheid`,'pink');bumpCoins();
   critters();checkLevel();save();placedN++;
-  $('#placeTxt').textContent=`${d.e} ${placedN} geplaatst. Tik op gras voor nog een, of op Klaar`;
+  $('#placeTxt').innerHTML=`${d.e} ${placedN} geplaatst<span class="pt">. Tik op gras voor nog een</span>`;
   if((d.max&&(decorCount[d.id]||0)>=d.max)||S.coins<d.cost)endPlace();}
 
 let expanding=null;
@@ -868,7 +872,8 @@ function burst(pos,col,n,spd){for(let i=0;i<n;i++){const m=new THREE.Mesh(partGe
 function popTile(t,amt=.35){t.pop=amt;}
 const floatWrap=$('#floaties');
 function floaty(pos,text,cls){const v=pos.clone().project(cam);const d=document.createElement('div');d.className='floaty '+(cls||'');d.textContent=text;
-  d.style.left=((v.x+1)/2*innerWidth)+'px';d.style.top=((1-v.y)/2*innerHeight)+'px';floatWrap.appendChild(d);setTimeout(()=>d.remove(),1250);}
+  floatWrap.appendChild(d);const hw=d.offsetWidth/2+8;   // binnen beeld houden
+  d.style.left=clamp((v.x+1)/2*innerWidth,hw,innerWidth-hw)+'px';d.style.top=clamp((1-v.y)/2*innerHeight,90,innerHeight-120)+'px';setTimeout(()=>d.remove(),1250);}
 const toastWrap=$('#toasts');
 function toast(msg){const last=toastWrap.lastElementChild;if(last&&last.textContent===msg)return;   // geen dubbele
   const d=document.createElement('div');d.className='toast';d.textContent=msg;toastWrap.appendChild(d);
